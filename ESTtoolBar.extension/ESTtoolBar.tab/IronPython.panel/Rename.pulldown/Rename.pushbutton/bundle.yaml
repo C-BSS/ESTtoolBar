@@ -1,0 +1,19 @@
+# bundle title
+title: 
+  en_us: "Rename"
+  es_es: "Renombrar"
+
+# bundle tooltip
+tooltip:
+  en_us: "Renames Views in Revit by finding and replacing. Also adds a prefix and suffix"
+  es_es: "Renombra Vistas en Revit, buscando y reemplazando. También agrega prefijo y sufijo"
+
+# bundle highlighting ('new' or 'updated')
+# Revit UI will show a orange marker on the button and a border around the tooltip
+highlight: 
+
+# minimium supported Revit version
+min_revit_version: 2022
+
+# bundle author
+author: Felipe Bonnemaison

@@ -1,0 +1,2684 @@
+{
+  "Uuid": "ad6d7fd5-dbe8-4ed4-a4b4-c591799cd955",
+  "IsCustomNode": false,
+  "Description": "Busca vistas sin clasificar y las clasifica",
+  "Name": "BM_ClasificaVistasSinClasificar_UI",
+  "ElementResolver": {
+    "ResolutionMap": {}
+  },
+  "Inputs": [],
+  "Outputs": [],
+  "Nodes": [
+    {
+      "ConcreteType": "Dynamo.Graph.Nodes.ZeroTouch.DSFunction, DynamoCore",
+      "NodeType": "FunctionNode",
+      "FunctionSignature": "Revit.Elements.Element.SetParameterByName@string,var",
+      "Id": "70c5adfd1f504523ba7da53487f99062",
+      "Inputs": [
+        {
+          "Id": "f82a46b0666c43539e4d561de9054cc0",
+          "Name": "element",
+          "Description": "Revit.Elements.Element",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        },
+        {
+          "Id": "65ede5ef702a4edfa81cb582634459f1",
+          "Name": "parameterName",
+          "Description": "The name of the parameter to set.\n\nstring",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        },
+        {
+          "Id": "e80b634d4837414bb7b3b67f2682d976",
+          "Name": "value",
+          "Description": "The value.\n\nvar",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Outputs": [
+        {
+          "Id": "63ee9f4477f945c388fde60da2e158d1",
+          "Name": "Element",
+          "Description": "Element",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Auto",
+      "Description": "Set one of the element's parameters.\n\nElement.SetParameterByName (parameterName: string, value: var): Element"
+    },
+    {
+      "ConcreteType": "Dynamo.Graph.Nodes.CodeBlockNodeModel, DynamoCore",
+      "NodeType": "CodeBlockNode",
+      "Code": "\"View Classification\";",
+      "Id": "ee887139f3c043b8ba0201ab716a6cc8",
+      "Inputs": [],
+      "Outputs": [
+        {
+          "Id": "4e002ae07d644308894a97cc9d2b3f04",
+          "Name": "",
+          "Description": "Value of expression at line 1",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Disabled",
+      "Description": "Allows for DesignScript code to be authored directly"
+    },
+    {
+      "ConcreteType": "Dynamo.Graph.Nodes.CodeBlockNodeModel, DynamoCore",
+      "NodeType": "CodeBlockNode",
+      "Code": "\"Notas\";\n\"Esta rutina clasificará todas la vistas sin parámetro asignado. Adicionalmente permite descargar los RevitLinks.\";",
+      "Id": "83e29ca973fe4a8eab0d7fb88ea4e7ef",
+      "Inputs": [],
+      "Outputs": [
+        {
+          "Id": "624525400ddc46ea8026b06cd44248fd",
+          "Name": "",
+          "Description": "Value of expression at line 1",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        },
+        {
+          "Id": "7a34efc7b4884a338a193b26e0c2cbc5",
+          "Name": "",
+          "Description": "Value of expression at line 2",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Disabled",
+      "Description": "Allows for DesignScript code to be authored directly"
+    },
+    {
+      "ConcreteType": "CoreNodeModels.Input.BoolSelector, CoreNodeModels",
+      "NodeType": "BooleanInputNode",
+      "InputValue": false,
+      "Id": "9dccba5564ef4f2aba051614e324522f",
+      "Inputs": [],
+      "Outputs": [
+        {
+          "Id": "10e9b5d8798c4639bcd725a253a590fc",
+          "Name": "",
+          "Description": "Boolean",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Disabled",
+      "Description": "Selection between a true and false."
+    },
+    {
+      "ConcreteType": "CoreNodeModels.Input.BoolSelector, CoreNodeModels",
+      "NodeType": "BooleanInputNode",
+      "InputValue": true,
+      "Id": "f289a00a2802426bba61731d1ec7fb36",
+      "Inputs": [],
+      "Outputs": [
+        {
+          "Id": "31fc963c3907403496d91a792c5c2f73",
+          "Name": "",
+          "Description": "Boolean",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Disabled",
+      "Description": "Selection between a true and false."
+    },
+    {
+      "ConcreteType": "Dynamo.Graph.Nodes.ZeroTouch.DSFunction, DynamoCore",
+      "NodeType": "FunctionNode",
+      "FunctionSignature": "Revit.Elements.FamilyType.Name",
+      "Id": "96c52010a3484055a0745d1c48afcf47",
+      "Inputs": [
+        {
+          "Id": "a5aaaf9127a440d1a52e615434fd5778",
+          "Name": "familyType",
+          "Description": "Revit.Elements.FamilyType",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Outputs": [
+        {
+          "Id": "0df1debb544a47018ee8d5afa7ae114c",
+          "Name": "string",
+          "Description": "string",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Auto",
+      "Description": "Get the name of this Family Type\n\nFamilyType.Name: string"
+    },
+    {
+      "ConcreteType": "Dynamo.Graph.Nodes.CodeBlockNodeModel, DynamoCore",
+      "NodeType": "CodeBlockNode",
+      "Code": "\"Vistas sin clasificar\";",
+      "Id": "e6a7a89d2ef3458eb5757a1a010f8d25",
+      "Inputs": [],
+      "Outputs": [
+        {
+          "Id": "f7efc2a0c552493481bc33c48c14f627",
+          "Name": "",
+          "Description": "Value of expression at line 1",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Disabled",
+      "Description": "Allows for DesignScript code to be authored directly"
+    },
+    {
+      "ConcreteType": "Dynamo.Graph.Nodes.CustomNodes.Function, DynamoCore",
+      "FunctionSignature": "21f76aa4-5026-47ec-b977-474280c81d74",
+      "FunctionType": "Graph",
+      "NodeType": "FunctionNode",
+      "Id": "0aed8a485c7e42fea999748e8b1a22a2",
+      "Inputs": [
+        {
+          "Id": "73904611df4f41f19c4e078407b8fea1",
+          "Name": "Title",
+          "Description": "string\nDefault value : \"\"",
+          "UsingDefaultValue": true,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        },
+        {
+          "Id": "6e2931d05dde44a29f0db5117c9d531c",
+          "Name": "TextNote_",
+          "Description": "string",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Outputs": [
+        {
+          "Id": "3548561fc36b4d5c86c70f7dca15f9d2",
+          "Name": "TextBox input",
+          "Description": "return value",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Auto",
+      "Description": "Create Data for TextNote input in UI.MultipleInputForm ++ . Check out www.data-shapes.net for more informations"
+    },
+    {
+      "ConcreteType": "Dynamo.Graph.Nodes.CustomNodes.Function, DynamoCore",
+      "FunctionSignature": "c3a36eb7-8fe8-4417-b31e-ccc9fded769b",
+      "FunctionType": "Graph",
+      "NodeType": "FunctionNode",
+      "Id": "aae57075bcaa4c24a5f174273bbadbd6",
+      "Inputs": [
+        {
+          "Id": "12bb9e8840c0453c8f14e1cbc0bb1b66",
+          "Name": "InputName",
+          "Description": "string\nDefault value : \"\"",
+          "UsingDefaultValue": true,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        },
+        {
+          "Id": "46d252ffad6e4310b8b12c6c6884a4ec",
+          "Name": "Keys_",
+          "Description": "var[]",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        },
+        {
+          "Id": "b7df45043f8e4131a88d6814df1bc94b",
+          "Name": "Values_",
+          "Description": "var[]..[]",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        },
+        {
+          "Id": "a6be33817be04e9eabf21def7af3cbc2",
+          "Name": "Height_optionnal",
+          "Description": "int\nDefault value : 200",
+          "UsingDefaultValue": true,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        },
+        {
+          "Id": "b50d0a6ba84843beb76fd6ff21af3d3b",
+          "Name": "HilightInView_optionnal",
+          "Description": " If set to true, clicking elements of the listview will highlight them in a view like Dynamo's watch node\n\nbool\nDefault value : false",
+          "UsingDefaultValue": true,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        },
+        {
+          "Id": "0d7e55725b934c60a99c92dee70d9b69",
+          "Name": "DisplayModeOnly_optionnal",
+          "Description": " Turns off ability to select elements. Form will not output any data for this element.\n\nbool\nDefault value : false",
+          "UsingDefaultValue": true,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        },
+        {
+          "Id": "92d4173b071047d3817ef18ee32d1b56",
+          "Name": "ShowElementCount_optionnal",
+          "Description": " Will display the number of elements underneath the input name\n\nbool\nDefault value : false",
+          "UsingDefaultValue": true,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        },
+        {
+          "Id": "9bec55a977ce45478e7af2d1dbe7e4cc",
+          "Name": "DefaultValueIndices_optionnal",
+          "Description": "int[]\nDefault value : DSCore.List.Empty",
+          "UsingDefaultValue": true,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        },
+        {
+          "Id": "370386590ef04c4bafef4caa97d319d6",
+          "Name": "SortItems_optionnal",
+          "Description": " Determines wether the ListView items are sorted or not\n\nbool\nDefault value : true",
+          "UsingDefaultValue": true,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        },
+        {
+          "Id": "ace8a28a895e49bc89e6963b987d29c6",
+          "Name": "ShowId_optionnal",
+          "Description": " Warning: disabling this will cause the listview input creation to fail in case there are elements with the same name\n\nbool\nDefault value : true",
+          "UsingDefaultValue": true,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Outputs": [
+        {
+          "Id": "998db71c0b44454a84908e228794e65a",
+          "Name": "ListView input",
+          "Description": "return value",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Auto",
+      "Description": "Create data for ListView input in UI.MultiInputForm ++ . Check out www.data-shapes.net for more infos."
+    },
+    {
+      "ConcreteType": "CoreNodeModels.Input.Filename, CoreNodeModels",
+      "HintPath": "C:\\Logo\\logo.png",
+      "InputValue": "..\\..\\..\\..\\..\\..\\..\\..\\Logo\\logo.png",
+      "NodeType": "ExtensionNode",
+      "Id": "0f2038c8a3484767b6df6e94f51c09dc",
+      "Inputs": [],
+      "Outputs": [
+        {
+          "Id": "9118abfec964425491566863b5a24bd9",
+          "Name": "",
+          "Description": "File Path",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Disabled",
+      "Description": "Allows you to select a file on the system to get its file path."
+    },
+    {
+      "ConcreteType": "CoreNodeModels.CreateList, CoreNodeModels",
+      "VariableInputPorts": true,
+      "NodeType": "ExtensionNode",
+      "Id": "2ced160f25bc4a82a9ee0f5fb04df6cc",
+      "Inputs": [
+        {
+          "Id": "2b4a18d92c29405dbbbfc33eac214d10",
+          "Name": "item0",
+          "Description": "Item Index #0",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        },
+        {
+          "Id": "b24c94ca28f94bb880288da41e11b938",
+          "Name": "item1",
+          "Description": "Item Index #1",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        },
+        {
+          "Id": "d7cc28d6510f4febb0a08dd0dad229d4",
+          "Name": "item2",
+          "Description": "Item Index #2",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        },
+        {
+          "Id": "dac3761ca8444308aa7710cc57e396af",
+          "Name": "item3",
+          "Description": "Item Index #3",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Outputs": [
+        {
+          "Id": "25c1e2889b4f4205bf5c69b5e2acdb19",
+          "Name": "list",
+          "Description": "A list (type: var[]..[])",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Disabled",
+      "Description": "Makes a new list out of the given inputs"
+    },
+    {
+      "ConcreteType": "CoreNodeModels.Input.FileObject, CoreNodeModels",
+      "NodeType": "ExtensionNode",
+      "Id": "0a0c296390b34e9589f8a1b91b88e82a",
+      "Inputs": [
+        {
+          "Id": "ab028383e19441b9881efce7c62b072a",
+          "Name": "path",
+          "Description": "Path to the file.",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Outputs": [
+        {
+          "Id": "155e5d7ea73b499b8433592a476d0b96",
+          "Name": "file",
+          "Description": "File object",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Disabled",
+      "Description": "Creates a file object from a path."
+    },
+    {
+      "ConcreteType": "Dynamo.Graph.Nodes.CodeBlockNodeModel, DynamoCore",
+      "NodeType": "CodeBlockNode",
+      "Code": "\"VISTAS SIN CLASIFICAR\";\n\"Ejecutar\";\n\"Cancelar\";\n600;\n200;",
+      "Id": "f03a9f8e42bf4d0c914b8b8e903c9a5a",
+      "Inputs": [],
+      "Outputs": [
+        {
+          "Id": "ea7cc21e2ec84166bdbb6d569cf3b456",
+          "Name": "",
+          "Description": "Value of expression at line 1",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        },
+        {
+          "Id": "b9f7418bd72d40ecaa340924a8b8eb77",
+          "Name": "",
+          "Description": "Value of expression at line 2",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        },
+        {
+          "Id": "5245579135db476185583728537c8b33",
+          "Name": "",
+          "Description": "Value of expression at line 3",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        },
+        {
+          "Id": "c9da1f1c36184733a0023c091b6135b8",
+          "Name": "",
+          "Description": "Value of expression at line 4",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        },
+        {
+          "Id": "d1923dd187fc4dba9ee5ebfd89ce16f7",
+          "Name": "",
+          "Description": "Value of expression at line 5",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Disabled",
+      "Description": "Allows for DesignScript code to be authored directly"
+    },
+    {
+      "ConcreteType": "Dynamo.Graph.Nodes.ZeroTouch.DSFunction, DynamoCore",
+      "NodeType": "FunctionNode",
+      "FunctionSignature": "DSCore.IO.Image.ReadFromFile@var",
+      "Id": "97f05cb4f18c4d1fbd43ca32d56d5d83",
+      "Inputs": [
+        {
+          "Id": "e428b3f9453b41f3b5f31c73708d1cda",
+          "Name": "file",
+          "Description": "File object to load image from\n\nvar",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Outputs": [
+        {
+          "Id": "72e170aabb7f4e039778218e2a2ac58d",
+          "Name": "image",
+          "Description": "Image object from file",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Auto",
+      "Description": "Loads the file as a bitmap.\n\nImage.ReadFromFile (file: var): var"
+    },
+    {
+      "ConcreteType": "CoreNodeModels.Input.BoolSelector, CoreNodeModels",
+      "NodeType": "BooleanInputNode",
+      "InputValue": true,
+      "Id": "c15b9d1918ce4b5793d75294c5ed44c0",
+      "Inputs": [],
+      "Outputs": [
+        {
+          "Id": "d0e58f3aecae4569a96ee741f3bfef24",
+          "Name": "",
+          "Description": "Boolean",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Disabled",
+      "Description": "Selection between a true and false."
+    },
+    {
+      "ConcreteType": "Dynamo.Graph.Nodes.CustomNodes.Function, DynamoCore",
+      "FunctionSignature": "9fbd05c0-ec1f-4bd3-bf37-969a1552eab8",
+      "FunctionType": "Graph",
+      "NodeType": "FunctionNode",
+      "Id": "a23f708df9db4ebb9aeefbbfa07a42f1",
+      "Inputs": [
+        {
+          "Id": "a786c5a3aedd428b9230196beadc22fc",
+          "Name": "Description_optional",
+          "Description": "string\nDefault value : \"\"",
+          "UsingDefaultValue": true,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        },
+        {
+          "Id": "73008f615cfa41f4afa5e39fffc4d1f9",
+          "Name": "Logo_optional",
+          "Description": "var\nDefault value : \"\"",
+          "UsingDefaultValue": true,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        },
+        {
+          "Id": "85cc3b8a4110496da1f5c13b3430c7b6",
+          "Name": "ButtonText_optional",
+          "Description": "string\nDefault value : \"Set Values\"",
+          "UsingDefaultValue": true,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        },
+        {
+          "Id": "0ce8f5590f874d21b81216440807fe53",
+          "Name": "Inputs",
+          "Description": "var[]",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        },
+        {
+          "Id": "d0fbfc5c50014e30b0e58fff7643e016",
+          "Name": "Toggle",
+          "Description": "bool\nDefault value : false",
+          "UsingDefaultValue": true,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        },
+        {
+          "Id": "2969f07f891b4c7b9e9b7acfd63aeb05",
+          "Name": "LinkToHelp_optional",
+          "Description": "string\nDefault value : null",
+          "UsingDefaultValue": true,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        },
+        {
+          "Id": "e219a9aaf5004d239a0898a344214c79",
+          "Name": "CancelButtonText_optional",
+          "Description": " Cancel button will only be displayed if a label text is entered here\n\nstring\nDefault value : null",
+          "UsingDefaultValue": true,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        },
+        {
+          "Id": "fbbd22971b4442588b77249b12124205",
+          "Name": "MaxHeight_optional",
+          "Description": "int\nDefault value : 0",
+          "UsingDefaultValue": true,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        },
+        {
+          "Id": "8969042a38194fe6aa50f8105394ad28",
+          "Name": "Width_optional",
+          "Description": "int\nDefault value : 400",
+          "UsingDefaultValue": true,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        },
+        {
+          "Id": "5406cac71e874060ad516d881f8e979c",
+          "Name": "LabelWidth_optional",
+          "Description": "int\nDefault value : 140",
+          "UsingDefaultValue": true,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Outputs": [
+        {
+          "Id": "23771b8c3cb241bca666e2c0d3c9b490",
+          "Name": "User Inputs",
+          "Description": "return value",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        },
+        {
+          "Id": "df86f3afe31b4fb3a718952434546cd8",
+          "Name": "Was Run ",
+          "Description": "return value",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        },
+        {
+          "Id": "1f819016b29a4df7b500530582ea0d43",
+          "Name": "Was Cancelled",
+          "Description": "return value",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Auto",
+      "Description": "Create a form with multiple inputs. \r\nsee www.data-shapes.net for tutorials and infos!"
+    },
+    {
+      "ConcreteType": "DSRevitNodesUI.Categories, DSRevitNodesUI",
+      "SelectedIndex": 684,
+      "SelectedString": "OST_Views",
+      "NodeType": "ExtensionNode",
+      "Id": "cdf06904a50b498f82c7856aa21d5417",
+      "Inputs": [],
+      "Outputs": [
+        {
+          "Id": "55724282da93420b86317e6f7561e647",
+          "Name": "Category",
+          "Description": "The selected Category.",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Disabled",
+      "Description": "All built-in categories."
+    },
+    {
+      "ConcreteType": "DSRevitNodesUI.ElementsOfCategory, DSRevitNodesUI",
+      "NodeType": "ExtensionNode",
+      "Id": "f5860f39ccf5429f8b52597ac1c6f4ee",
+      "Inputs": [
+        {
+          "Id": "c3a10f90b7ad4504a7f763bd5589e1e5",
+          "Name": "Category",
+          "Description": "The Category",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Outputs": [
+        {
+          "Id": "b515edd874e14a39934fe6ab2f34ddce",
+          "Name": "Elements",
+          "Description": "An element type.",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Disabled",
+      "Description": "Get all elements of the specified category from the model."
+    },
+    {
+      "ConcreteType": "Dynamo.Graph.Nodes.ZeroTouch.DSFunction, DynamoCore",
+      "NodeType": "FunctionNode",
+      "FunctionSignature": "archilab.Lists.Lists.Clean@var[]",
+      "Id": "151c8b139fe242fa82958597e0ce7b93",
+      "Inputs": [
+        {
+          "Id": "8a844892aded4473b53274e1d81590e0",
+          "Name": "list",
+          "Description": "var[]",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Outputs": [
+        {
+          "Id": "91f5c952d3fd4eedadefc2b1b6260625",
+          "Name": "var[]",
+          "Description": "var[]",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Auto",
+      "Description": "Lists.Clean (list: var[]): var[]"
+    },
+    {
+      "ConcreteType": "DSRevitNodesUI.Categories, DSRevitNodesUI",
+      "SelectedIndex": 493,
+      "SelectedString": "OST_Schedules",
+      "NodeType": "ExtensionNode",
+      "Id": "5c0899170f91448db4e1e18f186a4723",
+      "Inputs": [],
+      "Outputs": [
+        {
+          "Id": "d3117f1d36f54b83b0726e7c751eae02",
+          "Name": "Category",
+          "Description": "The selected Category.",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Disabled",
+      "Description": "All built-in categories."
+    },
+    {
+      "ConcreteType": "Dynamo.Graph.Nodes.ZeroTouch.DSFunction, DynamoCore",
+      "NodeType": "FunctionNode",
+      "FunctionSignature": "archilab.Lists.Lists.Clean@var[]",
+      "Id": "503d5c76800e4ee3be29f11af7834d1b",
+      "Inputs": [
+        {
+          "Id": "d5c2093b786246a4a19280e19976ff20",
+          "Name": "list",
+          "Description": "var[]",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Outputs": [
+        {
+          "Id": "1e68123f653e4a0c9886fbb8a62db793",
+          "Name": "var[]",
+          "Description": "var[]",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Auto",
+      "Description": "Lists.Clean (list: var[]): var[]"
+    },
+    {
+      "ConcreteType": "DSRevitNodesUI.ElementsOfCategory, DSRevitNodesUI",
+      "NodeType": "ExtensionNode",
+      "Id": "fc832d94c6fc48319b87a4a3b6aba9ae",
+      "Inputs": [
+        {
+          "Id": "a1eb46591a004a47b75d9c9e0eb2c82a",
+          "Name": "Category",
+          "Description": "The Category",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Outputs": [
+        {
+          "Id": "35de8704a81547faa3f99d971c402a46",
+          "Name": "Elements",
+          "Description": "An element type.",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Disabled",
+      "Description": "Get all elements of the specified category from the model."
+    },
+    {
+      "ConcreteType": "CoreNodeModels.CreateList, CoreNodeModels",
+      "VariableInputPorts": true,
+      "NodeType": "ExtensionNode",
+      "Id": "6ef6998b0f3b4ea7b74e2265bc0370ed",
+      "Inputs": [
+        {
+          "Id": "cb543ad643954bed9e1679cbeb0203d8",
+          "Name": "item0",
+          "Description": "Item Index #0",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        },
+        {
+          "Id": "127805d0a0fd496c9f38505fce5bf0c2",
+          "Name": "item1",
+          "Description": "Item Index #1",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Outputs": [
+        {
+          "Id": "b96565c9e5de4199813cc3583399dcb9",
+          "Name": "list",
+          "Description": "A list (type: var[]..[])",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Disabled",
+      "Description": "Makes a new list out of the given inputs"
+    },
+    {
+      "ConcreteType": "Dynamo.Graph.Nodes.ZeroTouch.DSFunction, DynamoCore",
+      "NodeType": "FunctionNode",
+      "FunctionSignature": "DSCore.List.Flatten@var[]..[],int",
+      "Id": "cc5f6a4e412943c8973d16ae23c2df4b",
+      "Inputs": [
+        {
+          "Id": "a00acf307a7349d8b983d77a55083ef2",
+          "Name": "list",
+          "Description": "List to flatten.\n\nvar[]..[]",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        },
+        {
+          "Id": "5d58ceca9a14433c97076cf82ff39e9f",
+          "Name": "amount",
+          "Description": "Layers of list nesting to remove (-1 will remove all list nestings)\n\nint\nDefault value : -1",
+          "UsingDefaultValue": true,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Outputs": [
+        {
+          "Id": "f62b8aac387f46ab961986a55e66eeb4",
+          "Name": "list",
+          "Description": "Flattened list by amount",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Auto",
+      "Description": "Flattens a nested list of lists by a certain amount.\n\nList.Flatten (list: var[]..[], amount: int = -1): var[]..[]"
+    },
+    {
+      "ConcreteType": "Dynamo.Graph.Nodes.CodeBlockNodeModel, DynamoCore",
+      "NodeType": "CodeBlockNode",
+      "Code": "\"View Classification\";",
+      "Id": "d64ebb8101f04ae8916800a138d1f236",
+      "Inputs": [],
+      "Outputs": [
+        {
+          "Id": "67726e6ad61242599b03964e2a63e4d3",
+          "Name": "",
+          "Description": "Value of expression at line 1",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Disabled",
+      "Description": "Allows for DesignScript code to be authored directly"
+    },
+    {
+      "ConcreteType": "Dynamo.Graph.Nodes.ZeroTouch.DSFunction, DynamoCore",
+      "NodeType": "FunctionNode",
+      "FunctionSignature": "Revit.Elements.Element.GetParameterValueByName@string",
+      "Id": "30047ec173ab472d93d8ec16d3088ea1",
+      "Inputs": [
+        {
+          "Id": "1063ce803afb4fac904b3eb65e05664e",
+          "Name": "element",
+          "Description": "Revit.Elements.Element",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        },
+        {
+          "Id": "5fc1721176bf45ed9914558779bb8791",
+          "Name": "parameterName",
+          "Description": "The name of the parameter whose value you want to obtain.\n\nstring",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Outputs": [
+        {
+          "Id": "a5a75988380542a5b87600e97efb4cfd",
+          "Name": "var[]..[]",
+          "Description": "var[]..[]",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Auto",
+      "Description": "Get the value of one of the element's parameters.\n\nElement.GetParameterValueByName (parameterName: string): var[]..[]"
+    },
+    {
+      "ConcreteType": "Dynamo.Graph.Nodes.CodeBlockNodeModel, DynamoCore",
+      "NodeType": "CodeBlockNode",
+      "Code": "z==\"\";",
+      "Id": "c9e1fd5bd9ff4b2cac6d15f66f63ee7e",
+      "Inputs": [
+        {
+          "Id": "d2e7fd9d60d7414ebb5b227ffc850cce",
+          "Name": "z",
+          "Description": "z",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Outputs": [
+        {
+          "Id": "f672fe41d30b4aeb82885895a04f0009",
+          "Name": "",
+          "Description": "Value of expression at line 1",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Disabled",
+      "Description": "Allows for DesignScript code to be authored directly"
+    },
+    {
+      "ConcreteType": "Dynamo.Graph.Nodes.ZeroTouch.DSFunction, DynamoCore",
+      "NodeType": "FunctionNode",
+      "FunctionSignature": "DSCore.List.FilterByBoolMask@var[]..[],var[]..[]",
+      "Id": "d2a521a251bb4be6a7adade562135e30",
+      "Inputs": [
+        {
+          "Id": "5fdf3f19456c467c9df401867c3f8f2e",
+          "Name": "list",
+          "Description": "List to filter.\n\nvar[]..[]",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        },
+        {
+          "Id": "389876eee03e4282870484725c74f3a5",
+          "Name": "mask",
+          "Description": "List of booleans representing a mask.\n\nvar[]..[]",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Outputs": [
+        {
+          "Id": "b1ca76806a6e471894306fc7630849ff",
+          "Name": "in",
+          "Description": "Items whose mask index is true.",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        },
+        {
+          "Id": "255ce2e581fd4a64994d4dbd1bc12ebd",
+          "Name": "out",
+          "Description": "Items whose mask index is false.",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Auto",
+      "Description": "Filters a sequence by looking up corresponding indices in a separate list of booleans.\n\nList.FilterByBoolMask (list: var[]..[], mask: var[]..[]): var[]..[]"
+    },
+    {
+      "ConcreteType": "Dynamo.Graph.Nodes.ZeroTouch.DSFunction, DynamoCore",
+      "NodeType": "FunctionNode",
+      "FunctionSignature": "DSCore.List.GetItemAtIndex@var[]..[],int",
+      "Id": "8d7c3f5a99c54226b23e0341d7002eef",
+      "Inputs": [
+        {
+          "Id": "c4094aa246b748bd8335aefac482da59",
+          "Name": "list",
+          "Description": "List to fetch an item from.\n\nvar[]..[]",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        },
+        {
+          "Id": "0ce2ce401bd146108a724fe1eb9a661b",
+          "Name": "index",
+          "Description": "Index of the item to be fetched.\n\nint",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Outputs": [
+        {
+          "Id": "cf74e89c48b344529686c3a361b2e6ee",
+          "Name": "item",
+          "Description": "Item in the list at the given index.",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Auto",
+      "Description": "Returns an item from the given list that's located at the specified index.\n\nList.GetItemAtIndex (list: var[]..[], index: int): var[]..[]"
+    },
+    {
+      "ConcreteType": "Dynamo.Graph.Nodes.CodeBlockNodeModel, DynamoCore",
+      "NodeType": "CodeBlockNode",
+      "Code": "0;\n1;\n2;",
+      "Id": "1eee74e5871e4062979622072edeaa80",
+      "Inputs": [],
+      "Outputs": [
+        {
+          "Id": "88bbd83a58004cd8a2ffe4a615347b63",
+          "Name": "",
+          "Description": "Value of expression at line 1",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        },
+        {
+          "Id": "10dcf905dda34517a00ff82fda8f00f7",
+          "Name": "",
+          "Description": "Value of expression at line 2",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        },
+        {
+          "Id": "f36610f8a6e643a690b4567385609d1b",
+          "Name": "",
+          "Description": "Value of expression at line 3",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Disabled",
+      "Description": "Allows for DesignScript code to be authored directly"
+    },
+    {
+      "ConcreteType": "Dynamo.Graph.Nodes.ZeroTouch.DSFunction, DynamoCore",
+      "NodeType": "FunctionNode",
+      "FunctionSignature": "DSCore.List.GetItemAtIndex@var[]..[],int",
+      "Id": "fa3cb636d0c642c4a28c25524045f29c",
+      "Inputs": [
+        {
+          "Id": "306da38427f74071a35825e7c639d2d0",
+          "Name": "list",
+          "Description": "List to fetch an item from.\n\nvar[]..[]",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        },
+        {
+          "Id": "3366d892a4324876ac1f4a9fa83fe86f",
+          "Name": "index",
+          "Description": "Index of the item to be fetched.\n\nint",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Outputs": [
+        {
+          "Id": "ef079bfdb00a4cde818c4cd38333e41e",
+          "Name": "item",
+          "Description": "Item in the list at the given index.",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Auto",
+      "Description": "Returns an item from the given list that's located at the specified index.\n\nList.GetItemAtIndex (list: var[]..[], index: int): var[]..[]"
+    },
+    {
+      "ConcreteType": "Dynamo.Graph.Nodes.CustomNodes.Function, DynamoCore",
+      "FunctionSignature": "928e40a7-91ac-45c3-8d59-4d899fc49b83",
+      "FunctionType": "Graph",
+      "NodeType": "FunctionNode",
+      "Id": "2c53724bd8304ab3bd083c7e01e9fa56",
+      "Inputs": [
+        {
+          "Id": "b447e2c6bf1b4214a04512bc39c0c9f9",
+          "Name": "InputName",
+          "Description": "string\nDefault value : \"\"",
+          "UsingDefaultValue": true,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        },
+        {
+          "Id": "ab1338d036614dc380077b48d4c90cd9",
+          "Name": "DefaultText",
+          "Description": "string\nDefault value : \"\"",
+          "UsingDefaultValue": true,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        },
+        {
+          "Id": "999747953b424531aa58ac12e6497e4f",
+          "Name": "IsNumberEntry",
+          "Description": "bool\nDefault value : false",
+          "UsingDefaultValue": true,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Outputs": [
+        {
+          "Id": "5446ddaec966474cbc8c86a665d272fd",
+          "Name": "TextBox input",
+          "Description": "return value",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Auto",
+      "Description": "Create Data for TextBox input in UI.MultipleInputForm ++ . Check out www.data-shapes.net for more informations"
+    },
+    {
+      "ConcreteType": "Dynamo.Graph.Nodes.CodeBlockNodeModel, DynamoCore",
+      "NodeType": "CodeBlockNode",
+      "Code": "\"Clasificación\";\n\"WIP\";",
+      "Id": "175f508e5ab44792b2757f1206a1b02d",
+      "Inputs": [],
+      "Outputs": [
+        {
+          "Id": "b11d4aa088824f24a845f2872347e5dd",
+          "Name": "",
+          "Description": "Value of expression at line 1",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        },
+        {
+          "Id": "983ae397ce9e4e8a875eb4ef3050fa9b",
+          "Name": "",
+          "Description": "Value of expression at line 2",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Disabled",
+      "Description": "Allows for DesignScript code to be authored directly"
+    },
+    {
+      "ConcreteType": "DSRevitNodesUI.ElementTypes, DSRevitNodesUI",
+      "SelectedIndex": 282,
+      "SelectedString": "RevitLinkInstance",
+      "NodeType": "ExtensionNode",
+      "Id": "718865a0a73b46d88625b672b777d5e2",
+      "Inputs": [],
+      "Outputs": [
+        {
+          "Id": "1a9f9bfafb424bcc80473b234ab59d68",
+          "Name": "Types",
+          "Description": "The selected Types",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Disabled",
+      "Description": "All element subtypes."
+    },
+    {
+      "ConcreteType": "DSRevitNodesUI.ElementsOfType, DSRevitNodesUI",
+      "NodeType": "ExtensionNode",
+      "Id": "1450c3ed20bd4f1db33b718b42575582",
+      "Inputs": [
+        {
+          "Id": "d45129f827044a8cbed3938223b3b45f",
+          "Name": "element type",
+          "Description": "An element type.",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Outputs": [
+        {
+          "Id": "562eb8aa3ac04f358a0121e989bb4932",
+          "Name": "elements",
+          "Description": "All elements in the active document of a given type.",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Disabled",
+      "Description": "All elements in the active document of a given type."
+    },
+    {
+      "ConcreteType": "Dynamo.Graph.Nodes.CustomNodes.Function, DynamoCore",
+      "FunctionSignature": "878c2430-f417-4d65-88ac-e53f4f67169e",
+      "FunctionType": "Graph",
+      "NodeType": "FunctionNode",
+      "Id": "b7631eea19b74ea782f1afe83efed2ae",
+      "Inputs": [
+        {
+          "Id": "b88633707c974b6f840d6da315f25793",
+          "Name": "RevitLinkInstance",
+          "Description": "var[]..[]",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Outputs": [
+        {
+          "Id": "d9eb3282c7d04c1a987d6db2800de844",
+          "Name": "RevitLinkInstance",
+          "Description": "return value",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Auto",
+      "Description": "Unloads the Revit link provided."
+    },
+    {
+      "ConcreteType": "CoreNodeModels.Logic.RefactoredIf, CoreNodeModels",
+      "NodeType": "ExtensionNode",
+      "Id": "11763e70d5cd47ec9833edb26364b7c4",
+      "Inputs": [
+        {
+          "Id": "9d0b482fe5d149c3b89e683d1cd74410",
+          "Name": "test",
+          "Description": "Boolean test",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        },
+        {
+          "Id": "ef5c983f2eed49bf9a75ff0d83af90ec",
+          "Name": "true",
+          "Description": "Returned if test is true",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        },
+        {
+          "Id": "216b235b25674e9eb625af7c81163c11",
+          "Name": "false",
+          "Description": "Returned if test is false",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Outputs": [
+        {
+          "Id": "73bb65b889bf427d9dea9e9361fa7988",
+          "Name": "result",
+          "Description": "Result block produced",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Auto",
+      "Description": "Returns the result of either the True or False input depending on what boolean value is toggled in the test input."
+    },
+    {
+      "ConcreteType": "Dynamo.Graph.Nodes.CodeBlockNodeModel, DynamoCore",
+      "NodeType": "CodeBlockNode",
+      "Code": "\"¿Descargar RevitLinks?\";\n\"SI\";",
+      "Id": "ad445edeaed8434b936d901a704caa6c",
+      "Inputs": [],
+      "Outputs": [
+        {
+          "Id": "66d428d92b42440cacca65252292a53c",
+          "Name": "",
+          "Description": "Value of expression at line 1",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        },
+        {
+          "Id": "edc2fbc7cbd84f9eaa94b5955d34c78e",
+          "Name": "",
+          "Description": "Value of expression at line 2",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Disabled",
+      "Description": "Allows for DesignScript code to be authored directly"
+    },
+    {
+      "ConcreteType": "CoreNodeModels.Input.BoolSelector, CoreNodeModels",
+      "NodeType": "BooleanInputNode",
+      "InputValue": false,
+      "Id": "6e2e5a59ee3540109ccc0d20de93b91b",
+      "Inputs": [],
+      "Outputs": [
+        {
+          "Id": "be7dc1857ea146f5bf81a5886cfad6ef",
+          "Name": "",
+          "Description": "Boolean",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Disabled",
+      "Description": "Selection between a true and false."
+    },
+    {
+      "ConcreteType": "Dynamo.Graph.Nodes.CustomNodes.Function, DynamoCore",
+      "FunctionSignature": "62113099-742e-4754-acaf-81fcb1e7cec9",
+      "FunctionType": "Graph",
+      "NodeType": "FunctionNode",
+      "Id": "48fbc116949d4dd0ac3b6740ba98d41b",
+      "Inputs": [
+        {
+          "Id": "ac14034930eb4fa1a676d021724f0d21",
+          "Name": "InputName",
+          "Description": "string\nDefault value : \"\"",
+          "UsingDefaultValue": true,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        },
+        {
+          "Id": "b6fc82653fd04c52a48d5945c9d41011",
+          "Name": "DefaultValue",
+          "Description": "bool\nDefault value : false",
+          "UsingDefaultValue": true,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        },
+        {
+          "Id": "2483e710b8714a9ab8893f80ae0a2003",
+          "Name": "SideText",
+          "Description": "string\nDefault value : \"Yes/No\"",
+          "UsingDefaultValue": true,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Outputs": [
+        {
+          "Id": "2b742825d75c446da7202f2f4c369b1e",
+          "Name": "Boolean input",
+          "Description": "return value",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Auto",
+      "Description": "Creates a boolean input for UI.MultipleInputForm ++ . Check out www.data-shapes.net for more infos!"
+    },
+    {
+      "ConcreteType": "Dynamo.Graph.Nodes.ZeroTouch.DSFunction, DynamoCore",
+      "NodeType": "FunctionNode",
+      "FunctionSignature": "DSCore.List.GetItemAtIndex@var[]..[],int",
+      "Id": "bcd8814e73c444d28cf1f882ea756cd0",
+      "Inputs": [
+        {
+          "Id": "2d6943a7ecc147259478a1e969f21a47",
+          "Name": "list",
+          "Description": "List to fetch an item from.\n\nvar[]..[]",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        },
+        {
+          "Id": "a1620f439bb2415388281be87eecbc32",
+          "Name": "index",
+          "Description": "Index of the item to be fetched.\n\nint",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Outputs": [
+        {
+          "Id": "541ad5265fc441659340ba0450230d7b",
+          "Name": "item",
+          "Description": "Item in the list at the given index.",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Auto",
+      "Description": "Returns an item from the given list that's located at the specified index.\n\nList.GetItemAtIndex (list: var[]..[], index: int): var[]..[]"
+    },
+    {
+      "ConcreteType": "Dynamo.Graph.Nodes.CodeBlockNodeModel, DynamoCore",
+      "NodeType": "CodeBlockNode",
+      "Code": "\"No se han descargado los links\";",
+      "Id": "557deddfa5b84bd5a2e0fc7091377211",
+      "Inputs": [],
+      "Outputs": [
+        {
+          "Id": "b43f371526c44c66bbaaaa75940bd558",
+          "Name": "",
+          "Description": "Value of expression at line 1",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Disabled",
+      "Description": "Allows for DesignScript code to be authored directly"
+    }
+  ],
+  "Connectors": [
+    {
+      "Start": "4e002ae07d644308894a97cc9d2b3f04",
+      "End": "65ede5ef702a4edfa81cb582634459f1",
+      "Id": "443837c004014bc28cb0d7335542d3c3"
+    },
+    {
+      "Start": "624525400ddc46ea8026b06cd44248fd",
+      "End": "73904611df4f41f19c4e078407b8fea1",
+      "Id": "e0f960750a3641f8a499715669459280"
+    },
+    {
+      "Start": "7a34efc7b4884a338a193b26e0c2cbc5",
+      "End": "6e2931d05dde44a29f0db5117c9d531c",
+      "Id": "b69780ddfa264a4d9269a30ea7c447e3"
+    },
+    {
+      "Start": "10e9b5d8798c4639bcd725a253a590fc",
+      "End": "ace8a28a895e49bc89e6963b987d29c6",
+      "Id": "a5e2b5b9ebae46e7936bd119b4b8522a"
+    },
+    {
+      "Start": "31fc963c3907403496d91a792c5c2f73",
+      "End": "92d4173b071047d3817ef18ee32d1b56",
+      "Id": "802194ca88b74474954f05c6faf77d2f"
+    },
+    {
+      "Start": "0df1debb544a47018ee8d5afa7ae114c",
+      "End": "46d252ffad6e4310b8b12c6c6884a4ec",
+      "Id": "a1c5f3686c8c42008c50adaa41490b4b"
+    },
+    {
+      "Start": "f7efc2a0c552493481bc33c48c14f627",
+      "End": "12bb9e8840c0453c8f14e1cbc0bb1b66",
+      "Id": "8d7f6f0ef3d243c6a9b4577ef433a308"
+    },
+    {
+      "Start": "3548561fc36b4d5c86c70f7dca15f9d2",
+      "End": "2b4a18d92c29405dbbbfc33eac214d10",
+      "Id": "a430b54869de4030a954299d7c640bef"
+    },
+    {
+      "Start": "998db71c0b44454a84908e228794e65a",
+      "End": "b24c94ca28f94bb880288da41e11b938",
+      "Id": "76d704163b6d47c6861abf0ba1cfa2b2"
+    },
+    {
+      "Start": "9118abfec964425491566863b5a24bd9",
+      "End": "ab028383e19441b9881efce7c62b072a",
+      "Id": "96fa64ddf5f64795b7f2d1cc06e587b1"
+    },
+    {
+      "Start": "25c1e2889b4f4205bf5c69b5e2acdb19",
+      "End": "0ce8f5590f874d21b81216440807fe53",
+      "Id": "d3b7861bff6340ea822c38549a34331d"
+    },
+    {
+      "Start": "155e5d7ea73b499b8433592a476d0b96",
+      "End": "e428b3f9453b41f3b5f31c73708d1cda",
+      "Id": "e866777f460d4eaeb1726d4eefc47b66"
+    },
+    {
+      "Start": "ea7cc21e2ec84166bdbb6d569cf3b456",
+      "End": "a786c5a3aedd428b9230196beadc22fc",
+      "Id": "71bb59cd951047da8fe8619e8e69c4f6"
+    },
+    {
+      "Start": "b9f7418bd72d40ecaa340924a8b8eb77",
+      "End": "85cc3b8a4110496da1f5c13b3430c7b6",
+      "Id": "fa4075a73968438fb5f54c0f1f82ca31"
+    },
+    {
+      "Start": "5245579135db476185583728537c8b33",
+      "End": "e219a9aaf5004d239a0898a344214c79",
+      "Id": "74cc98e57ba94a43953ec27c3b876ee2"
+    },
+    {
+      "Start": "c9da1f1c36184733a0023c091b6135b8",
+      "End": "8969042a38194fe6aa50f8105394ad28",
+      "Id": "4e1df2742b6e42c085e56fed16b26f83"
+    },
+    {
+      "Start": "d1923dd187fc4dba9ee5ebfd89ce16f7",
+      "End": "5406cac71e874060ad516d881f8e979c",
+      "Id": "68b9d92ff92a4b2283a650cac015005f"
+    },
+    {
+      "Start": "72e170aabb7f4e039778218e2a2ac58d",
+      "End": "73008f615cfa41f4afa5e39fffc4d1f9",
+      "Id": "3bcd7f194efe4ff680da0723c3b9cff6"
+    },
+    {
+      "Start": "d0e58f3aecae4569a96ee741f3bfef24",
+      "End": "d0fbfc5c50014e30b0e58fff7643e016",
+      "Id": "c7e42bc815564bc1947f2f5ae6445215"
+    },
+    {
+      "Start": "23771b8c3cb241bca666e2c0d3c9b490",
+      "End": "c4094aa246b748bd8335aefac482da59",
+      "Id": "17c76ea47284489ca109cad064c77718"
+    },
+    {
+      "Start": "23771b8c3cb241bca666e2c0d3c9b490",
+      "End": "306da38427f74071a35825e7c639d2d0",
+      "Id": "ba82e16e34384674b73c5fb4e53722cd"
+    },
+    {
+      "Start": "23771b8c3cb241bca666e2c0d3c9b490",
+      "End": "2d6943a7ecc147259478a1e969f21a47",
+      "Id": "7c0ef20325054ddc95b1703be54010d2"
+    },
+    {
+      "Start": "55724282da93420b86317e6f7561e647",
+      "End": "c3a10f90b7ad4504a7f763bd5589e1e5",
+      "Id": "9bafe54bcbee4ace96682145b1b18e49"
+    },
+    {
+      "Start": "b515edd874e14a39934fe6ab2f34ddce",
+      "End": "8a844892aded4473b53274e1d81590e0",
+      "Id": "fb6e263c8f35499e9f8a0c314f44e424"
+    },
+    {
+      "Start": "91f5c952d3fd4eedadefc2b1b6260625",
+      "End": "cb543ad643954bed9e1679cbeb0203d8",
+      "Id": "c05a6cd82aca4c6ebb4653d9254ef43d"
+    },
+    {
+      "Start": "d3117f1d36f54b83b0726e7c751eae02",
+      "End": "a1eb46591a004a47b75d9c9e0eb2c82a",
+      "Id": "d669528bacbc4e95a8cba9f779268349"
+    },
+    {
+      "Start": "1e68123f653e4a0c9886fbb8a62db793",
+      "End": "127805d0a0fd496c9f38505fce5bf0c2",
+      "Id": "5fd4debac2b1410d947766237a88968e"
+    },
+    {
+      "Start": "35de8704a81547faa3f99d971c402a46",
+      "End": "d5c2093b786246a4a19280e19976ff20",
+      "Id": "ebccc97e37f64073bd2e94d83a7b0e6f"
+    },
+    {
+      "Start": "b96565c9e5de4199813cc3583399dcb9",
+      "End": "a00acf307a7349d8b983d77a55083ef2",
+      "Id": "cd443ad6d53e4c449b61f66e6047ed37"
+    },
+    {
+      "Start": "f62b8aac387f46ab961986a55e66eeb4",
+      "End": "1063ce803afb4fac904b3eb65e05664e",
+      "Id": "71ef21ce5e7f431b9b564811cc98ed46"
+    },
+    {
+      "Start": "f62b8aac387f46ab961986a55e66eeb4",
+      "End": "5fdf3f19456c467c9df401867c3f8f2e",
+      "Id": "d4cb1218672f4336b4496e9d71476ba9"
+    },
+    {
+      "Start": "67726e6ad61242599b03964e2a63e4d3",
+      "End": "5fc1721176bf45ed9914558779bb8791",
+      "Id": "9b561749799b40dc88467f5bd0b70385"
+    },
+    {
+      "Start": "a5a75988380542a5b87600e97efb4cfd",
+      "End": "d2e7fd9d60d7414ebb5b227ffc850cce",
+      "Id": "b9089cec2a924d63a2a278bf8f0498d1"
+    },
+    {
+      "Start": "f672fe41d30b4aeb82885895a04f0009",
+      "End": "389876eee03e4282870484725c74f3a5",
+      "Id": "fdd4fbb5e2604242bbc69c5bfab5f8b5"
+    },
+    {
+      "Start": "b1ca76806a6e471894306fc7630849ff",
+      "End": "b7df45043f8e4131a88d6814df1bc94b",
+      "Id": "f9626b37964240c0bc6680da18610910"
+    },
+    {
+      "Start": "b1ca76806a6e471894306fc7630849ff",
+      "End": "a5aaaf9127a440d1a52e615434fd5778",
+      "Id": "da415ab2c5af4e579be86b5cdeeda12e"
+    },
+    {
+      "Start": "cf74e89c48b344529686c3a361b2e6ee",
+      "End": "e80b634d4837414bb7b3b67f2682d976",
+      "Id": "489aa74b9b794efca7e49b0489c3bf57"
+    },
+    {
+      "Start": "88bbd83a58004cd8a2ffe4a615347b63",
+      "End": "3366d892a4324876ac1f4a9fa83fe86f",
+      "Id": "45c9eab2b3b1466298c96a74385fe30a"
+    },
+    {
+      "Start": "10dcf905dda34517a00ff82fda8f00f7",
+      "End": "0ce2ce401bd146108a724fe1eb9a661b",
+      "Id": "e8caff2b7f7c469b998a8822bc6db37c"
+    },
+    {
+      "Start": "f36610f8a6e643a690b4567385609d1b",
+      "End": "a1620f439bb2415388281be87eecbc32",
+      "Id": "2f920de7bf65448699c6468b0093a087"
+    },
+    {
+      "Start": "ef079bfdb00a4cde818c4cd38333e41e",
+      "End": "f82a46b0666c43539e4d561de9054cc0",
+      "Id": "7f83ad14af1645e0a789374d2246a34b"
+    },
+    {
+      "Start": "5446ddaec966474cbc8c86a665d272fd",
+      "End": "d7cc28d6510f4febb0a08dd0dad229d4",
+      "Id": "96ac8541111a40189531859b13997c5e"
+    },
+    {
+      "Start": "b11d4aa088824f24a845f2872347e5dd",
+      "End": "b447e2c6bf1b4214a04512bc39c0c9f9",
+      "Id": "f0fa53797d8941e0ae48c2906a582cdd"
+    },
+    {
+      "Start": "983ae397ce9e4e8a875eb4ef3050fa9b",
+      "End": "ab1338d036614dc380077b48d4c90cd9",
+      "Id": "c58717afefdd42b184399bb6e61fc52c"
+    },
+    {
+      "Start": "1a9f9bfafb424bcc80473b234ab59d68",
+      "End": "d45129f827044a8cbed3938223b3b45f",
+      "Id": "480c77a3236141bf9050e1b8e4d5c8b4"
+    },
+    {
+      "Start": "562eb8aa3ac04f358a0121e989bb4932",
+      "End": "b88633707c974b6f840d6da315f25793",
+      "Id": "924ee7e1c1f1473cb172a41380da9ac6"
+    },
+    {
+      "Start": "d9eb3282c7d04c1a987d6db2800de844",
+      "End": "ef5c983f2eed49bf9a75ff0d83af90ec",
+      "Id": "b95d1bd0958f47088a882d31e90694eb"
+    },
+    {
+      "Start": "66d428d92b42440cacca65252292a53c",
+      "End": "ac14034930eb4fa1a676d021724f0d21",
+      "Id": "28eed9465c1f4e2ea5d7d6c85a7c53b2"
+    },
+    {
+      "Start": "edc2fbc7cbd84f9eaa94b5955d34c78e",
+      "End": "2483e710b8714a9ab8893f80ae0a2003",
+      "Id": "122804c445094b30ac8f079fe989b97b"
+    },
+    {
+      "Start": "be7dc1857ea146f5bf81a5886cfad6ef",
+      "End": "b6fc82653fd04c52a48d5945c9d41011",
+      "Id": "bc0bb0c9dcd741e4ad7d22808bc5fe9a"
+    },
+    {
+      "Start": "2b742825d75c446da7202f2f4c369b1e",
+      "End": "dac3761ca8444308aa7710cc57e396af",
+      "Id": "04714148fa5b4411896050dbd008c73d"
+    },
+    {
+      "Start": "541ad5265fc441659340ba0450230d7b",
+      "End": "9d0b482fe5d149c3b89e683d1cd74410",
+      "Id": "b983964a50674f1e8bdfc8594ddae19d"
+    },
+    {
+      "Start": "b43f371526c44c66bbaaaa75940bd558",
+      "End": "216b235b25674e9eb625af7c81163c11",
+      "Id": "7ef2ae1a99f54f8398431dbb8106610e"
+    }
+  ],
+  "Dependencies": [
+    "21f76aa4-5026-47ec-b977-474280c81d74",
+    "c3a36eb7-8fe8-4417-b31e-ccc9fded769b",
+    "9fbd05c0-ec1f-4bd3-bf37-969a1552eab8",
+    "928e40a7-91ac-45c3-8d59-4d899fc49b83",
+    "878c2430-f417-4d65-88ac-e53f4f67169e",
+    "62113099-742e-4754-acaf-81fcb1e7cec9"
+  ],
+  "NodeLibraryDependencies": [
+    {
+      "Name": "Data-Shapes",
+      "Version": "2023.2.111",
+      "ReferenceType": "Package",
+      "Nodes": [
+        "0aed8a485c7e42fea999748e8b1a22a2",
+        "aae57075bcaa4c24a5f174273bbadbd6",
+        "a23f708df9db4ebb9aeefbbfa07a42f1",
+        "2c53724bd8304ab3bd083c7e01e9fa56",
+        "48fbc116949d4dd0ac3b6740ba98d41b"
+      ]
+    },
+    {
+      "Name": "archi-lab.net",
+      "Version": "2022.210.1022",
+      "ReferenceType": "Package",
+      "Nodes": [
+        "151c8b139fe242fa82958597e0ce7b93",
+        "503d5c76800e4ee3be29f11af7834d1b"
+      ]
+    },
+    {
+      "Name": "Genius Loci",
+      "Version": "2022.3.28",
+      "ReferenceType": "Package",
+      "Nodes": [
+        "b7631eea19b74ea782f1afe83efed2ae"
+      ]
+    }
+  ],
+  "Thumbnail": "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",
+  "GraphDocumentationURL": null,
+  "ExtensionWorkspaceData": [
+    {
+      "ExtensionGuid": "28992e1d-abb9-417f-8b1b-05e053bee670",
+      "Name": "Properties",
+      "Version": "2.16",
+      "Data": {
+        "Custom Property 1": ""
+      }
+    },
+    {
+      "ExtensionGuid": "DFBD9CC0-DB40-457A-939E-8C8555555A9D",
+      "Name": "Generative Design",
+      "Version": "3.0",
+      "Data": {}
+    }
+  ],
+  "Author": "Felipe Bonnemaison",
+  "Linting": {
+    "activeLinter": "None",
+    "activeLinterId": "7b75fb44-43fd-4631-a878-29f4d5d8399a",
+    "warningCount": 0,
+    "errorCount": 0
+  },
+  "Bindings": [],
+  "View": {
+    "Dynamo": {
+      "ScaleFactor": 1.0,
+      "HasRunWithoutCrash": true,
+      "IsVisibleInDynamoLibrary": true,
+      "Version": "2.12.1.8246",
+      "RunType": "Manual",
+      "RunPeriod": "1000"
+    },
+    "Camera": {
+      "Name": "Background Preview",
+      "EyeX": -18.394733428955078,
+      "EyeY": 25.510959625244141,
+      "EyeZ": 56.7412109375,
+      "LookX": 13.394733428955078,
+      "LookY": -14.510959625244141,
+      "LookZ": -64.7412109375,
+      "UpX": 0.0,
+      "UpY": 1.0,
+      "UpZ": 0.0
+    },
+    "NodeViews": [
+      {
+        "Id": "70c5adfd1f504523ba7da53487f99062",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": false,
+        "Name": "Element.SetParameterByName",
+        "ShowGeometry": true,
+        "Excluded": false,
+        "X": 5615.2428599780815,
+        "Y": 1810.167723671856
+      },
+      {
+        "Id": "ee887139f3c043b8ba0201ab716a6cc8",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": false,
+        "Name": "Code Block",
+        "ShowGeometry": true,
+        "Excluded": false,
+        "X": 5185.956264655737,
+        "Y": 2043.3173053297887
+      },
+      {
+        "Id": "83e29ca973fe4a8eab0d7fb88ea4e7ef",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": false,
+        "Name": "Code Block",
+        "ShowGeometry": true,
+        "Excluded": false,
+        "X": 1417.2829338458509,
+        "Y": 1731.6388980624536
+      },
+      {
+        "Id": "9dccba5564ef4f2aba051614e324522f",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": false,
+        "Name": "Boolean",
+        "ShowGeometry": true,
+        "Excluded": false,
+        "X": 1916.9551014825265,
+        "Y": 2362.1009044341563
+      },
+      {
+        "Id": "f289a00a2802426bba61731d1ec7fb36",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": false,
+        "Name": "Boolean",
+        "ShowGeometry": true,
+        "Excluded": false,
+        "X": 1917.0623926866265,
+        "Y": 2283.0709632399062
+      },
+      {
+        "Id": "96c52010a3484055a0745d1c48afcf47",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": false,
+        "Name": "FamilyType.Name",
+        "ShowGeometry": true,
+        "Excluded": false,
+        "X": 1832.4327382672163,
+        "Y": 2081.799050691026
+      },
+      {
+        "Id": "e6a7a89d2ef3458eb5757a1a010f8d25",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": false,
+        "Name": "Code Block",
+        "ShowGeometry": true,
+        "Excluded": false,
+        "X": 1791.2838287003069,
+        "Y": 1973.9500874497162
+      },
+      {
+        "Id": "0aed8a485c7e42fea999748e8b1a22a2",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": false,
+        "Name": "TextNote Data",
+        "ShowGeometry": true,
+        "Excluded": false,
+        "X": 2343.1508622992128,
+        "Y": 1719.0681471831233
+      },
+      {
+        "Id": "aae57075bcaa4c24a5f174273bbadbd6",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": false,
+        "Name": "Listview Data",
+        "ShowGeometry": true,
+        "Excluded": false,
+        "X": 2226.3791053321866,
+        "Y": 2128.2093523569661
+      },
+      {
+        "Id": "0f2038c8a3484767b6df6e94f51c09dc",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": false,
+        "Name": "File Path",
+        "ShowGeometry": true,
+        "Excluded": false,
+        "X": 3209.9914977725366,
+        "Y": 1945.8616610529762
+      },
+      {
+        "Id": "2ced160f25bc4a82a9ee0f5fb04df6cc",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": false,
+        "Name": "List Create",
+        "ShowGeometry": true,
+        "Excluded": false,
+        "X": 3217.7422064345465,
+        "Y": 2095.389380021576
+      },
+      {
+        "Id": "0a0c296390b34e9589f8a1b91b88e82a",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": false,
+        "Name": "File From Path",
+        "ShowGeometry": true,
+        "Excluded": false,
+        "X": 3366.9204133775966,
+        "Y": 1945.8616610529762
+      },
+      {
+        "Id": "f03a9f8e42bf4d0c914b8b8e903c9a5a",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": false,
+        "Name": "Code Block",
+        "ShowGeometry": true,
+        "Excluded": false,
+        "X": 3464.5136642063485,
+        "Y": 1753.3977854299167
+      },
+      {
+        "Id": "97f05cb4f18c4d1fbd43ca32d56d5d83",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": false,
+        "Name": "Image.ReadFromFile",
+        "ShowGeometry": true,
+        "Excluded": false,
+        "X": 3541.3212360458565,
+        "Y": 1945.2143399720462
+      },
+      {
+        "Id": "c15b9d1918ce4b5793d75294c5ed44c0",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": false,
+        "Name": "Boolean",
+        "ShowGeometry": true,
+        "Excluded": false,
+        "X": 3582.5668673080163,
+        "Y": 2197.6613614388662
+      },
+      {
+        "Id": "a23f708df9db4ebb9aeefbbfa07a42f1",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": false,
+        "Name": "MultipleInputForm ++",
+        "ShowGeometry": true,
+        "Excluded": false,
+        "X": 3998.985324838126,
+        "Y": 2011.8862986849563
+      },
+      {
+        "Id": "cdf06904a50b498f82c7856aa21d5417",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": false,
+        "Name": "Categories",
+        "ShowGeometry": true,
+        "Excluded": false,
+        "X": -1050.635063366529,
+        "Y": 2061.1058527544119
+      },
+      {
+        "Id": "f5860f39ccf5429f8b52597ac1c6f4ee",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": false,
+        "Name": "All Elements of Category",
+        "ShowGeometry": true,
+        "Excluded": false,
+        "X": -739.875777034171,
+        "Y": 2062.1467428270607
+      },
+      {
+        "Id": "151c8b139fe242fa82958597e0ce7b93",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": false,
+        "Name": "Lists.Clean",
+        "ShowGeometry": true,
+        "Excluded": false,
+        "X": -441.187673901145,
+        "Y": 2063.0648237759297
+      },
+      {
+        "Id": "5c0899170f91448db4e1e18f186a4723",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": false,
+        "Name": "Categories",
+        "ShowGeometry": true,
+        "Excluded": false,
+        "X": -1054.0114676940341,
+        "Y": 2291.9875275472327
+      },
+      {
+        "Id": "503d5c76800e4ee3be29f11af7834d1b",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": false,
+        "Name": "Lists.Clean",
+        "ShowGeometry": true,
+        "Excluded": false,
+        "X": -444.56407822865094,
+        "Y": 2293.9464985687528
+      },
+      {
+        "Id": "fc832d94c6fc48319b87a4a3b6aba9ae",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": false,
+        "Name": "All Elements of Category",
+        "ShowGeometry": true,
+        "Excluded": false,
+        "X": -743.25218136168064,
+        "Y": 2293.0284176198825
+      },
+      {
+        "Id": "6ef6998b0f3b4ea7b74e2265bc0370ed",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": false,
+        "Name": "List Create",
+        "ShowGeometry": true,
+        "Excluded": false,
+        "X": -2.052190082999914,
+        "Y": 2176.6072361333336
+      },
+      {
+        "Id": "cc5f6a4e412943c8973d16ae23c2df4b",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": false,
+        "Name": "List.Flatten",
+        "ShowGeometry": true,
+        "Excluded": false,
+        "X": 196.00161424123007,
+        "Y": 2175.6705404700933
+      },
+      {
+        "Id": "d64ebb8101f04ae8916800a138d1f236",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": false,
+        "Name": "Code Block",
+        "ShowGeometry": true,
+        "Excluded": false,
+        "X": -36.852199175699752,
+        "Y": 2742.8393318463759
+      },
+      {
+        "Id": "30047ec173ab472d93d8ec16d3088ea1",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": false,
+        "Name": "Element.GetParameterValueByName",
+        "ShowGeometry": true,
+        "Excluded": false,
+        "X": 635.73200163260026,
+        "Y": 2708.8281354479636
+      },
+      {
+        "Id": "c9e1fd5bd9ff4b2cac6d15f66f63ee7e",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": false,
+        "Name": "Code Block",
+        "ShowGeometry": true,
+        "Excluded": false,
+        "X": 1033.6632538672993,
+        "Y": 2714.0877975743047
+      },
+      {
+        "Id": "d2a521a251bb4be6a7adade562135e30",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": false,
+        "Name": "List.FilterByBoolMask",
+        "ShowGeometry": true,
+        "Excluded": false,
+        "X": 1389.23175089477,
+        "Y": 2180.6492795605718
+      },
+      {
+        "Id": "8d7c3f5a99c54226b23e0341d7002eef",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": false,
+        "Name": "Clasificación",
+        "ShowGeometry": true,
+        "Excluded": false,
+        "X": 4762.8755201073509,
+        "Y": 2010.5193298776778
+      },
+      {
+        "Id": "1eee74e5871e4062979622072edeaa80",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": false,
+        "Name": "Code Block",
+        "ShowGeometry": true,
+        "Excluded": false,
+        "X": 4484.6679659445581,
+        "Y": 2204.3502055501003
+      },
+      {
+        "Id": "fa3cb636d0c642c4a28c25524045f29c",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": false,
+        "Name": "Vistas sin clasificar",
+        "ShowGeometry": true,
+        "Excluded": false,
+        "X": 4761.8633292778341,
+        "Y": 1814.378384173936
+      },
+      {
+        "Id": "2c53724bd8304ab3bd083c7e01e9fa56",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": false,
+        "Name": "TextBox Data",
+        "ShowGeometry": true,
+        "Excluded": false,
+        "X": 2315.9916081515184,
+        "Y": 2649.36467662991
+      },
+      {
+        "Id": "175f508e5ab44792b2757f1206a1b02d",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": false,
+        "Name": "Code Block",
+        "ShowGeometry": true,
+        "Excluded": false,
+        "X": 1791.6510507976368,
+        "Y": 2655.37992540776
+      },
+      {
+        "Id": "718865a0a73b46d88625b672b777d5e2",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": false,
+        "Name": "Element Types",
+        "ShowGeometry": true,
+        "Excluded": false,
+        "X": 5185.1749411417786,
+        "Y": 2373.7653901894087
+      },
+      {
+        "Id": "1450c3ed20bd4f1db33b718b42575582",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": false,
+        "Name": "All Elements of Type",
+        "ShowGeometry": true,
+        "Excluded": false,
+        "X": 5484.3523725727473,
+        "Y": 2374.3469820331939
+      },
+      {
+        "Id": "b7631eea19b74ea782f1afe83efed2ae",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": false,
+        "Name": "Unload RevitLinkInstance",
+        "ShowGeometry": true,
+        "Excluded": false,
+        "X": 5813.735818199385,
+        "Y": 2374.1884598074989
+      },
+      {
+        "Id": "11763e70d5cd47ec9833edb26364b7c4",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": false,
+        "Name": "If",
+        "ShowGeometry": true,
+        "Excluded": false,
+        "X": 6371.17830848644,
+        "Y": 2205.6459421844042
+      },
+      {
+        "Id": "ad445edeaed8434b936d901a704caa6c",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": false,
+        "Name": "Code Block",
+        "ShowGeometry": true,
+        "Excluded": false,
+        "X": 1801.1832676529575,
+        "Y": 2947.5975885931616
+      },
+      {
+        "Id": "6e2e5a59ee3540109ccc0d20de93b91b",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": false,
+        "Name": "Boolean",
+        "ShowGeometry": true,
+        "Excluded": false,
+        "X": 1805.9601209718928,
+        "Y": 3092.9095090641786
+      },
+      {
+        "Id": "48fbc116949d4dd0ac3b6740ba98d41b",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": false,
+        "Name": "Boolean input",
+        "ShowGeometry": true,
+        "Excluded": false,
+        "X": 2323.6089586860148,
+        "Y": 3015.1155386360524
+      },
+      {
+        "Id": "bcd8814e73c444d28cf1f882ea756cd0",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": false,
+        "Name": "Links",
+        "ShowGeometry": true,
+        "Excluded": false,
+        "X": 4761.6303872762492,
+        "Y": 2208.8754361425581
+      },
+      {
+        "Id": "557deddfa5b84bd5a2e0fc7091377211",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": false,
+        "Name": "Code Block",
+        "ShowGeometry": true,
+        "Excluded": false,
+        "X": 5817.6402233686122,
+        "Y": 2547.3801526066245
+      }
+    ],
+    "Annotations": [
+      {
+        "Id": "5572ef13f08b429ea373ffbe78393d40",
+        "Title": "COMPLETA PARAMETRO VACIO",
+        "Nodes": [
+          "70c5adfd1f504523ba7da53487f99062",
+          "ee887139f3c043b8ba0201ab716a6cc8"
+        ],
+        "Left": 5175.956264655737,
+        "Top": 1756.967723671856,
+        "Width": 718.08659532234469,
+        "Height": 378.94958165793264,
+        "FontSize": 36.0,
+        "InitialTop": 1810.167723671856,
+        "InitialHeight": 447.53959842926793,
+        "TextblockHeight": 43.2,
+        "Background": "#FFC1D676"
+      },
+      {
+        "Id": "6b62acb626124efdb805cc5e3a88efc3",
+        "Title": "UI: Notas",
+        "Nodes": [
+          "83e29ca973fe4a8eab0d7fb88ea4e7ef",
+          "0aed8a485c7e42fea999748e8b1a22a2",
+          "9066dad319b241659f31082153c9ee3d"
+        ],
+        "Left": 1407.2829338458509,
+        "Top": 1624.2382655272786,
+        "Width": 1209.8679284533619,
+        "Height": 226.40063253517496,
+        "FontSize": 36.0,
+        "InitialTop": 1677.4382655272786,
+        "InitialHeight": 199.20063253517492,
+        "TextblockHeight": 43.2,
+        "Background": "#FFD4B6DB"
+      },
+      {
+        "Id": "ad647394cc8d450bbe1bc7fd8738a708",
+        "Title": "UI: Vistas sin clasificar",
+        "Nodes": [
+          "aae57075bcaa4c24a5f174273bbadbd6",
+          "9dccba5564ef4f2aba051614e324522f",
+          "f289a00a2802426bba61731d1ec7fb36",
+          "96c52010a3484055a0745d1c48afcf47",
+          "e6a7a89d2ef3458eb5757a1a010f8d25",
+          "0fad5fe6ff3b47f3bdb7af8fbff83edd"
+        ],
+        "Left": 1781.2838287003069,
+        "Top": 1920.7500874497161,
+        "Width": 831.89527663187982,
+        "Height": 530.45926490724992,
+        "FontSize": 36.0,
+        "InitialTop": 1973.9500874497162,
+        "InitialHeight": 533.1508169844401,
+        "TextblockHeight": 43.2,
+        "Background": "#FFD4B6DB"
+      },
+      {
+        "Id": "c9edba6d393c471882863ee8de13e835",
+        "Title": "CREA UI",
+        "Nodes": [
+          "0f2038c8a3484767b6df6e94f51c09dc",
+          "2ced160f25bc4a82a9ee0f5fb04df6cc",
+          "0a0c296390b34e9589f8a1b91b88e82a",
+          "f03a9f8e42bf4d0c914b8b8e903c9a5a",
+          "97f05cb4f18c4d1fbd43ca32d56d5d83",
+          "c15b9d1918ce4b5793d75294c5ed44c0",
+          "a23f708df9db4ebb9aeefbbfa07a42f1",
+          "be1daa0dbfba439eb38816c56feb6304"
+        ],
+        "Left": 3199.9914977725366,
+        "Top": 1700.1977854299166,
+        "Width": 1167.393827065589,
+        "Height": 634.68851325503965,
+        "FontSize": 36.0,
+        "InitialTop": 1753.3977854299167,
+        "InitialHeight": 589.26357600894949,
+        "TextblockHeight": 43.2,
+        "Background": "#FF48B9FF"
+      },
+      {
+        "Id": "1d296c56b7cc46469af87c453336ccb3",
+        "Title": "1. Se obtienen todas las vistas disponibles",
+        "Nodes": [
+          "cdf06904a50b498f82c7856aa21d5417",
+          "f5860f39ccf5429f8b52597ac1c6f4ee",
+          "151c8b139fe242fa82958597e0ce7b93",
+          "30338fadf5834a22a2497de7b765684f"
+        ],
+        "Left": -1060.635063366529,
+        "Top": 1972.2641827863149,
+        "Width": 793.447389465384,
+        "Height": 183.40064098961466,
+        "FontSize": 36.0,
+        "InitialTop": 2025.464182786315,
+        "InitialHeight": 182.6006409896147,
+        "TextblockHeight": 43.2,
+        "Background": "#FFC1D676"
+      },
+      {
+        "Id": "4ffabf75c2e24316915881421fb25978",
+        "Title": "2. Se obtienen todas las Shedules disponibles",
+        "Nodes": [
+          "503d5c76800e4ee3be29f11af7834d1b",
+          "fc832d94c6fc48319b87a4a3b6aba9ae",
+          "5c0899170f91448db4e1e18f186a4723",
+          "46df7663262f499992e4c8dd2137ac5c"
+        ],
+        "Left": -1064.0114676940341,
+        "Top": 2199.8183024121563,
+        "Width": 793.44738946538314,
+        "Height": 186.72819615659637,
+        "FontSize": 36.0,
+        "InitialTop": 2253.0183024121561,
+        "InitialHeight": 185.92819615659664,
+        "TextblockHeight": 43.2,
+        "Background": "#FFC1D676"
+      },
+      {
+        "Id": "2bf08e5cd5de4c24869a34f05b7e3f93",
+        "Title": "3. Obtener parametros vacios",
+        "Nodes": [
+          "d64ebb8101f04ae8916800a138d1f236",
+          "30047ec173ab472d93d8ec16d3088ea1",
+          "c9e1fd5bd9ff4b2cac6d15f66f63ee7e"
+        ],
+        "Left": -46.852199175699752,
+        "Top": 2655.6281354479638,
+        "Width": 1212.115453042999,
+        "Height": 179.811196398412,
+        "FontSize": 36.0,
+        "InitialTop": 2708.8281354479636,
+        "InitialHeight": 179.01119639841227,
+        "TextblockHeight": 43.2,
+        "Background": "#FFC1D676"
+      },
+      {
+        "Id": "252e5ea0ec6543b69788d29b97265da8",
+        "Title": "FILTRAR DATA",
+        "Nodes": [
+          "1eee74e5871e4062979622072edeaa80",
+          "fa3cb636d0c642c4a28c25524045f29c",
+          "8d7c3f5a99c54226b23e0341d7002eef",
+          "bcd8814e73c444d28cf1f882ea756cd0"
+        ],
+        "Left": 4474.6679659445581,
+        "Top": 1761.1783841739359,
+        "Width": 477.40755416279262,
+        "Height": 565.897051968622,
+        "FontSize": 36.0,
+        "InitialTop": 1814.378384173936,
+        "InitialHeight": 396.88046737251989,
+        "TextblockHeight": 43.2,
+        "Background": "#FFD8D8D8"
+      },
+      {
+        "Id": "b9530cef258846f78275f79c59c32f03",
+        "Title": "Créditos",
+        "Nodes": [
+          "8c3bbe33b2c84768b8422665b176b6f3"
+        ],
+        "Left": 1411.002386349239,
+        "Top": 1246.9328469533962,
+        "Width": 325.60000000000014,
+        "Height": 318.60000000000014,
+        "FontSize": 36.0,
+        "InitialTop": 1300.1328469533962,
+        "InitialHeight": 145.0,
+        "TextblockHeight": 43.2,
+        "Background": "#FF48B9FF"
+      },
+      {
+        "Id": "47c8d7849bbe4010abbc483eb0bb3f96",
+        "Title": "UI: Clasificación",
+        "Nodes": [
+          "2c53724bd8304ab3bd083c7e01e9fa56",
+          "175f508e5ab44792b2757f1206a1b02d",
+          "18090fb383a741bea2dc8d5bb257cf8a"
+        ],
+        "Left": 1781.6510507976368,
+        "Top": 2553.4668916199325,
+        "Width": 832.34055735388165,
+        "Height": 239.69778500997745,
+        "FontSize": 36.0,
+        "InitialTop": 2606.6668916199324,
+        "InitialHeight": 193.7130337878275,
+        "TextblockHeight": 43.2,
+        "Background": "#FFD4B6DB"
+      },
+      {
+        "Id": "1a5b36b49ebc4ebfbf035ada393b2f4a",
+        "Title": "UI: ¿Descargar RevitLinks?",
+        "Nodes": [
+          "48fbc116949d4dd0ac3b6740ba98d41b",
+          "ad445edeaed8434b936d901a704caa6c",
+          "6e2e5a59ee3540109ccc0d20de93b91b",
+          "b9311a2f674d47a7bf38ef9461597a6a"
+        ],
+        "Left": 1791.1832676529575,
+        "Top": 2894.3975885931618,
+        "Width": 818.42569103305732,
+        "Height": 266.31192047101695,
+        "FontSize": 36.0,
+        "InitialTop": 2947.5975885931616,
+        "InitialHeight": 238.09011538253981,
+        "TextblockHeight": 43.2,
+        "Background": "#FFD4B6DB"
+      },
+      {
+        "Id": "438214e11d7c41f2a259c4b5feb7443b",
+        "Title": "DESCARGA REVITLINKS",
+        "Nodes": [
+          "718865a0a73b46d88625b672b777d5e2",
+          "1450c3ed20bd4f1db33b718b42575582",
+          "b7631eea19b74ea782f1afe83efed2ae",
+          "11763e70d5cd47ec9833edb26364b7c4",
+          "557deddfa5b84bd5a2e0fc7091377211",
+          "007cf9d2581a451680d40d4c2f9486b4"
+        ],
+        "Left": 5175.1749411417786,
+        "Top": 2152.4459421844044,
+        "Width": 1387.6033673446618,
+        "Height": 487.53421042222,
+        "FontSize": 36.0,
+        "InitialTop": 2205.6459421844042,
+        "InitialHeight": 464.33421042222017,
+        "TextblockHeight": 43.2,
+        "Background": "#FFC1D676"
+      },
+      {
+        "Id": "9066dad319b241659f31082153c9ee3d",
+        "Title": "Data-Shapes",
+        "Nodes": [],
+        "Left": 2346.5498648334647,
+        "Top": 1677.4382655272786,
+        "Width": 0.0,
+        "Height": 0.0,
+        "FontSize": 36.0,
+        "InitialTop": 0.0,
+        "InitialHeight": 0.0,
+        "TextblockHeight": 0.0,
+        "Background": "#FFC1D676"
+      },
+      {
+        "Id": "0fad5fe6ff3b47f3bdb7af8fbff83edd",
+        "Title": "Data-Shapes",
+        "Nodes": [],
+        "Left": 2226.0382636563463,
+        "Top": 2082.9977581093963,
+        "Width": 0.0,
+        "Height": 0.0,
+        "FontSize": 36.0,
+        "InitialTop": 0.0,
+        "InitialHeight": 0.0,
+        "TextblockHeight": 0.0,
+        "Background": "#FFC1D676"
+      },
+      {
+        "Id": "be1daa0dbfba439eb38816c56feb6304",
+        "Title": "Data-Shapes",
+        "Nodes": [],
+        "Left": 4006.6885729035621,
+        "Top": 1965.9241284843329,
+        "Width": 0.0,
+        "Height": 0.0,
+        "FontSize": 36.0,
+        "InitialTop": 0.0,
+        "InitialHeight": 0.0,
+        "TextblockHeight": 0.0,
+        "Background": "#FFC1D676"
+      },
+      {
+        "Id": "8c3bbe33b2c84768b8422665b176b6f3",
+        "Title": "                                                                                       \r\nCREADO POR: \r\nFelipe Bonnemaison\r\n\r\nVERSION 2.1 (UI)\r\n2025.02.28\r\n\r\nDYNAMO: \r\nDynamo 2.12\r\nIron Python 2.7\r\n\r\nPACKAGES:\r\nData-Shapes\r\narchi-lab.net\r\nGenius Loci\r\n",
+        "Nodes": [],
+        "Left": 1421.002386349239,
+        "Top": 1300.1328469533962,
+        "Width": 0.0,
+        "Height": 0.0,
+        "FontSize": 36.0,
+        "InitialTop": 0.0,
+        "InitialHeight": 0.0,
+        "TextblockHeight": 0.0,
+        "Background": "#FFC1D676"
+      },
+      {
+        "Id": "30338fadf5834a22a2497de7b765684f",
+        "Title": "archi-lab.net",
+        "Nodes": [],
+        "Left": -440.20769315817819,
+        "Top": 2025.464182786315,
+        "Width": 0.0,
+        "Height": 0.0,
+        "FontSize": 36.0,
+        "InitialTop": 0.0,
+        "InitialHeight": 0.0,
+        "TextblockHeight": 0.0,
+        "Background": "#FFC1D676"
+      },
+      {
+        "Id": "46df7663262f499992e4c8dd2137ac5c",
+        "Title": "archi-lab.net",
+        "Nodes": [],
+        "Left": -444.69277076650451,
+        "Top": 2253.0183024121561,
+        "Width": 0.0,
+        "Height": 0.0,
+        "FontSize": 36.0,
+        "InitialTop": 0.0,
+        "InitialHeight": 0.0,
+        "TextblockHeight": 0.0,
+        "Background": "#FFC1D676"
+      },
+      {
+        "Id": "18090fb383a741bea2dc8d5bb257cf8a",
+        "Title": "Data-Shapes",
+        "Nodes": [],
+        "Left": 2318.816469065719,
+        "Top": 2606.6668916199324,
+        "Width": 0.0,
+        "Height": 0.0,
+        "FontSize": 36.0,
+        "InitialTop": 0.0,
+        "InitialHeight": 0.0,
+        "TextblockHeight": 0.0,
+        "Background": "#FFC1D676"
+      },
+      {
+        "Id": "007cf9d2581a451680d40d4c2f9486b4",
+        "Title": "GeniusLoci",
+        "Nodes": [],
+        "Left": 5940.9358181993857,
+        "Top": 2323.7884598074988,
+        "Width": 0.0,
+        "Height": 0.0,
+        "FontSize": 36.0,
+        "InitialTop": 0.0,
+        "InitialHeight": 0.0,
+        "TextblockHeight": 0.0,
+        "Background": "#FFC1D676"
+      },
+      {
+        "Id": "b9311a2f674d47a7bf38ef9461597a6a",
+        "Title": "Data-Shapes",
+        "Nodes": [],
+        "Left": 2321.9485659484426,
+        "Top": 2972.9038294113989,
+        "Width": 0.0,
+        "Height": 0.0,
+        "FontSize": 36.0,
+        "InitialTop": 0.0,
+        "InitialHeight": 0.0,
+        "TextblockHeight": 0.0,
+        "Background": "#FFC1D676"
+      }
+    ],
+    "X": 204.57820375359631,
+    "Y": 115.35694174375767,
+    "Zoom": 0.14299146979946298
+  }
+}

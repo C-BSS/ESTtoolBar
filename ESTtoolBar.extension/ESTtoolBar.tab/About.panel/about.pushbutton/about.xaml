@@ -1,0 +1,139 @@
+<!-- Configuración General de la Ventana -->
+<Window xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="toolBar"
+        Foreground="#000"
+        Height="250" Width="750" Margin="0"
+        ShowInTaskbar="False"
+        BorderThickness="0"
+        Background="{x:Null}"
+        WindowStartupLocation="CenterScreen"
+        ScrollViewer.VerticalScrollBarVisibility="Disabled"
+        HorizontalContentAlignment="Center"
+        UseLayoutRounding="True"
+        FontFamily="Courier New"
+        WindowStyle="None"
+        ResizeMode="NoResize"
+        AllowsTransparency="True"
+        Opacity="0.85">
+
+    <!-- Contenido de la Ventana -->
+    <Border BorderThickness="1"
+            CornerRadius="15"
+            Margin="10,10,10,10">
+        <Border.Background>
+            <SolidColorBrush Color="#fff"/>
+        </Border.Background>
+        <Border.Effect>
+            <DropShadowEffect Color="{DynamicResource pyRevitDarkColor}" BlurRadius="15" Opacity="0.25"/>
+        </Border.Effect>
+
+        <Grid Margin="10">
+            <!-- Definir columnas -->
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="150"/> <!-- Para la imagen -->
+                <ColumnDefinition Width="*"/>   <!-- Para el contenido -->
+            </Grid.ColumnDefinitions>
+
+            <!-- Imagen a la izquierda -->
+            <Image x:Name="logo_image" Grid.Column="0"
+                    Width="140" Height="140"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    Margin="0,0,0,0"
+                    ToolTip="E&amp;A toolBar"/>
+
+            <!-- Contenido principal -->
+            <StackPanel Grid.Column="1" Margin="10">
+                <!-- Titulo -->
+                <TextBlock Text="EST toolBar"
+                            FontSize="30" FontWeight="Bold"
+                            Foreground="Black"
+                            HorizontalAlignment="Left"
+                            Margin="10,0,0,10"/>
+
+                <!-- Descripción -->
+                <TextBlock x:Name="description"
+                            TextWrapping="Wrap"
+                            FontSize="15"
+                            Foreground="Black"
+                            Margin="10,0,0,10"/>
+
+                <!-- Segunda Descripción -->
+                <TextBlock x:Name="second_description"
+                            TextWrapping="Wrap"
+                            FontSize="13"
+                            Foreground="Black"
+                            Margin="10,0,0,10"/>
+
+                <!-- Botones -->
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" Margin="10,10,0,0">
+                    
+                    <!-- Botón de GitHub -->
+                    <Button x:Name="github_button"
+                            Width="120" Height="30"
+                            Click="open_github"
+                            Margin="0,0,5,0"
+                            Background="LightBlue">
+                        <StackPanel Orientation="Horizontal">
+                            <Image x:Name="github_icon"
+                                   Width="20" Height="20"
+                                   Margin="0,0,10,0"/>
+                            <TextBlock Text="GitHub"
+                                       VerticalAlignment="Center"
+                                       FontWeight="Bold"/>
+                        </StackPanel>
+                    </Button>
+
+                    <!-- Botón de pyRevit -->
+                    <Button x:Name="pyrevit_button"
+                            Width="120" Height="30"
+                            Click="open_pyrevit"
+                            Margin="0,0,5,0"
+                            Background="LightGreen">
+                        <StackPanel Orientation="Horizontal">
+                            <Image x:Name="pyrevit_icon"
+                                   Width="20" Height="20"
+                                   Margin="0,0,10,0"/>
+                            <TextBlock Text="pyRevit"
+                                       VerticalAlignment="Center"
+                                       FontWeight="Bold"/>
+                        </StackPanel>
+                    </Button>
+
+                    <!-- Botón de Dynamo -->
+                    <Button x:Name="dynamo_button"
+                            Width="120" Height="30"
+                            Click="open_dynamo"
+                            Margin="0,0,5,0"
+                            Background="LightCoral">
+                        <StackPanel Orientation="Horizontal">
+                            <Image x:Name="dynamo_icon"
+                                   Width="20" Height="20"
+                                   Margin="0,0,10,0"/>
+                            <TextBlock Text="Dynamo"
+                                       VerticalAlignment="Center"
+                                       FontWeight="Bold"/>
+                        </StackPanel>
+                    </Button>
+                    
+                    <!-- Botón de Python -->
+                    <Button x:Name="python_button"
+                            Width="120" Height="30"
+                            Click="open_python"
+                            Background="LightYellow">
+                        <StackPanel Orientation="Horizontal">
+                            <Image x:Name="python_icon"
+                                   Width="20" Height="20"
+                                   Margin="0,0,10,0"/>
+                            <TextBlock Text="Python"
+                                       VerticalAlignment="Center"
+                                       FontWeight="Bold"/>
+                        </StackPanel>
+                    </Button>
+
+                </StackPanel>
+            </StackPanel>
+        </Grid>
+    </Border>
+</Window>

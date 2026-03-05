@@ -1,0 +1,15 @@
+# bundle title
+title: 
+  en_us: "Export Multiple NWC"
+  es_es: "Exporta Multiple NWC"
+
+# bundle tooltip
+tooltip: 
+  en_us: "Simultaneously export selected coordination views model to NWC format."
+  es_es: "Exporta simultaneamente vistas de coordinación seleccionadas del modelo a formato NWC"
+
+# minimium supported Revit version
+min_revit_version: 2024
+
+# bundle author
+author: Sebastián Sáez S.

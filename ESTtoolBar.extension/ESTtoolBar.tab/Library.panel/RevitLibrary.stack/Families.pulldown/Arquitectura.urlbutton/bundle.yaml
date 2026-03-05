@@ -1,0 +1,15 @@
+# bundle title  
+title: 
+  en_us: "Revit Architecture Families"
+  es_es: "Familias Revit Arquitectura"
+
+# url
+hyperlink: "https://arcadiso365.sharepoint.com/:f:/r/sites/CL_Especialidad_OOCCyE/02%20Comun/Biblioteca%20BIM%20Arquitectura/01%20Biblioteca%20Revit/02%20Familias?csf=1&web=1&e=mxnuWM"
+
+# bundle tooltip
+tooltip: 
+  en_us: "Compilation of various Families from the Architecture discipline for Revit"
+  es_es: "Recopilación de distintas Familias de la disciplina de Arquitectura para Revit"
+
+# bundle author
+author: Felipe Bonnemaison

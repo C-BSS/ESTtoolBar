@@ -1,0 +1,15 @@
+# bundle title
+title: 
+  en_us: "Ask to Sally"
+  es_es: "Pregúntale a Sally"
+
+# url
+hyperlink: "https://arcadisgpt.poweredby.arcadis.com/"
+
+# bundle tooltip
+tooltip:
+  en_us: "If you're lost, ask Arcadis GPT (Sally), an AI powered by ChatGPT 4.0"
+  es_es: "Si estas perdido pregúntale a Arcadis GPT (Sally). Una IA que funciona con ChatGPT 4.0"
+
+# bundle author
+author: Arcadis

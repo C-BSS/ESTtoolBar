@@ -1,0 +1,15 @@
+# bundle title
+title: 
+  en_us: "Revit Architecture Template"
+  es_es: "Plantilla Revit Arquitectura"
+
+# url
+hyperlink: "https://arcadiso365.sharepoint.com/:f:/r/sites/CL_Especialidad_OOCCyE/02%20Comun/Biblioteca%20BIM%20Arquitectura/01%20Biblioteca%20Revit/01%20Plantillas?csf=1&web=1&e=xxlIUL"
+
+# bundle tooltip
+tooltip: 
+  en_us: "Compilation of various templates from the Architectural discipline for Revit"
+  es_es: "Recopilación de distintas plantillas de la disciplina Arquitectura para Revit"
+
+# bundle author
+author: Felipe Bonnemaison

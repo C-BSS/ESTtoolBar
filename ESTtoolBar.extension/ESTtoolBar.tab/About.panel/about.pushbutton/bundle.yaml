@@ -1,0 +1,12 @@
+# bundle title
+title: EST toolBar
+
+# bundle tooltip
+tooltip: 
+  en_us: "Set of scripts created in Python and Dynamo by the Structures (EST)"
+  es_es: "Conjunto de scripts creados en Python y Dynamo por la disciplina de Estructuras (EST)"
+  pt_br: "Conjunto de scripts criados em Python e Dynamo pela disciplina de Estruturas (EST)"
+  ja: "構造（EST）の分野によって作成されたPythonとDynamoのスクリプトセット"
+
+# bundle author
+author: Sebastián Sáez

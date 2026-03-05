@@ -1,0 +1,15 @@
+# bundle title
+title: 
+  en_us: "Levels from Excel"
+  es_es: "Niveles desde Excel"
+
+# bundle tooltip
+tooltip: 
+  en_us: "Creates levels from an Excel spreadsheet"
+  es_es: "Crea niveles a partir de una planilla de excel"
+
+# minimium supported Revit version
+min_revit_version: 2022
+
+# bundle author
+author: Felipe Bonnemaison
