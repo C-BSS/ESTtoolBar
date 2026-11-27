@@ -1,0 +1,15 @@
+# bundle title
+title: 
+  en_us: "Delete Unused Views"
+  es_es: "Borra Vistas sin Uso"
+
+# bundle tooltip
+tooltip: 
+  en_us: "Delete views and schedules that are not being used on sheets. Also, allow purging libraries that are not being used"
+  es_es: "Borra vistas y tablas que no estan siendo utilizadas en láminas. También permite purgar las librerias que no están siendo utilizadas"
+
+# minimium supported Revit version
+min_revit_version: 2022
+
+# bundle author
+author: Felipe Bonnemaison

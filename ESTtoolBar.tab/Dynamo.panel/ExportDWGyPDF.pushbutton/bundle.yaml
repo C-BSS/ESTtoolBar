@@ -1,0 +1,15 @@
+# bundle title
+title: 
+  en_us: "Export DWG and PDF"
+  es_es: "Exporta DWG y PDF"
+
+# bundle tooltip
+tooltip: 
+  en_us: "Simultaneously export selected sheet formats in DWG and PDF according to the chosen configuration."
+  es_es: "Exporta simultaneamente formatos de laminas seleccionadas en DWG y PDF segun la configuración seleccionada"
+
+# minimium supported Revit version
+min_revit_version: 2022
+
+# bundle author
+author: Sebastián Sáez S.

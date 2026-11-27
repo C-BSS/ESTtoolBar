@@ -1,0 +1,24 @@
+# bundle title
+title: 
+  en_us: "Convert Text Notes"
+  es_es: "Convertir Notas de Texto"
+
+# bundle tooltip
+tooltip:
+  en_us: "Convert Revit Text Notes to:
+    - UPPER CASE (uppercase),
+    - lower case (lowercase),
+    - Sentence case (uppercase for the first letter of the sentence),
+    - Title Case (uppercase for the first letter of each word)"
+  
+  es_es: "Convierte las Notas de Texto de Revit a:
+    - UPPER CASE (Mayúsculas), 
+    - lower case (minúsculas),
+    - Sentence case (Mayúsculas en la primera letra de cada palabra),
+    - Title Case (Mayúsculas en la primera letra de cada palabra)"
+
+# minimium supported Revit version
+min_revit_version: 2022
+
+# bundle author
+author: Sebastián Sáez S.

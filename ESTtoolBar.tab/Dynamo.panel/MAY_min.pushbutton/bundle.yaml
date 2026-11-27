@@ -1,0 +1,15 @@
+# bundle title
+title:
+  en_us: "MAY_min"
+  es_es: "MAY_min"
+
+# bundle tooltip
+tooltip:
+  en_us: "Convert text between UPPERCASE and lowercase"
+  es_es: "Convierte textos entre MAYUSCULAS y minusculas"
+
+# minimum supported Revit version
+min_revit_version: 2022
+
+#bundle author
+author: Sebastián Sáez S.

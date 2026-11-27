@@ -1,0 +1,15 @@
+# bundle title
+title: 
+  en_us: "no Formula"
+  es_es: "sin Fórmula"
+
+# bundle tooltip
+tooltip: 
+  en_us: "Delete formulas from families downloaded from the internet that prevent the modification of their parameters"
+  es_es: "Borra fórmulas de familias descargadas de internet que evitan la modificación de sus parámetros"
+
+# minimium supported Revit version
+min_revit_version: 2022
+
+# bundle author
+author: Felipe Bonnemaison

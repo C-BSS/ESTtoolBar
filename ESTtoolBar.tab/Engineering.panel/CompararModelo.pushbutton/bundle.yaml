@@ -1,0 +1,15 @@
+# bundle title
+title: 
+  en_us: "Model Compare"
+  es_es: "Comparar Modelos"
+
+# bundle tooltip
+tooltip: 
+  en_us: "Compare models in Revit from excel files from SAP2000"
+  es_es: "Comparar modelos en Revit a partir de archivos de excel de SAP2000"
+
+# minimium supported Revit version
+min_revit_version: 2022
+
+# bundle author
+author: Vicente Cartagena.
