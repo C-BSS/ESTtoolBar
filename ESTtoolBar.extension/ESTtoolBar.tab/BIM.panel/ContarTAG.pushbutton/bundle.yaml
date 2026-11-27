@@ -1,0 +1,15 @@
+# bundle title
+title:
+  en_us: "Count TAG"
+  es_es: "Contador de TAG"
+
+# bundle tooltip
+tooltip:
+  en_us: "Count elements with and without BIM_TAG (Isolate element without TAG in the view)"
+  es_es: "Contar elementos con y sin BIM_TAG (Aisla en la vista los elementos sin TAG)"
+
+# minimum supported Revit version
+min_revit_version: 2026
+
+#bundle author
+author: Sebastián Sáez S.

@@ -1,0 +1,15 @@
+# bundle title
+title:
+  en_us: "Summary Report"
+  es_es: "Reporte resumido"
+
+# bundle tooltip
+tooltip:
+  en_us: "Generate summary report"
+  es_es: "Generar informe resumido"
+
+# minimum supported Revit version
+min_revit_version: 2026
+
+#bundle author
+author: Sebastián Sáez S.

@@ -1,0 +1,872 @@
+# -*- coding: utf-8 -*-
+# Cubicación Automática
+# Sebastián Sáez S.
+# SebaSaezS 2026
+# Compatible con Revit 2026 + pyRevit IronPython
+
+import clr
+
+clr.AddReference('RevitAPI')
+clr.AddReference('RevitAPIUI')
+
+from Autodesk.Revit.DB import (
+    FilteredElementCollector,
+    BuiltInCategory,
+    BuiltInParameter,
+    UnitUtils,
+    UnitTypeId,
+    ElementId,
+    Options,
+    Solid,
+    GeometryInstance
+)
+
+from pyrevit import revit, DB, script
+
+
+# ================================================================
+# CONFIGURACION
+# ================================================================
+
+DENSIDAD_ACERO = 7850.0
+DENSIDAD_HORMIGON = 2400.0
+FACTOR_CONEXIONES = 0.05
+
+CLASES_NW = [
+    (0, 29.9, "Estructura Liviana"),
+    (30, 59.9, "Estructura Media"),
+    (60, 89.9, "Estructura Pesada"),
+    (90, 99999, "Estructura Extrapesada")
+]
+
+ORDEN_CLASES = [
+    "Estructura Liviana",
+    "Estructura Media",
+    "Estructura Pesada",
+    "Estructura Extrapesada"
+]
+
+
+# ================================================================
+# FUNCIONES AUXILIARES
+# ================================================================
+
+def m3_a_kg(volumen_m3, densidad):
+    return volumen_m3 * densidad
+
+
+def clasificar_nw(peso_lineal_kg_m):
+    for min_nw, max_nw, nombre in CLASES_NW:
+        if peso_lineal_kg_m >= min_nw and peso_lineal_kg_m < max_nw:
+            return nombre
+
+    return "Sin clasificar"
+
+
+def convertir_volumen_a_m3(valor_interno):
+    try:
+        return UnitUtils.ConvertFromInternalUnits(
+            valor_interno,
+            UnitTypeId.CubicMeters
+        )
+    except:
+        return 0.0
+
+
+def convertir_longitud_a_m(valor_interno):
+    try:
+        return UnitUtils.ConvertFromInternalUnits(
+            valor_interno,
+            UnitTypeId.Meters
+        )
+    except:
+        return 0.0
+
+
+def obtener_volumen_parametro_m3(elemento):
+    """
+    Intenta obtener volumen desde HOST_VOLUME_COMPUTED.
+    No se usa INSTANCE_VOLUME_PARAM porque en tu entorno no existe.
+    """
+
+    try:
+        param = elemento.get_Parameter(
+            BuiltInParameter.HOST_VOLUME_COMPUTED
+        )
+
+        if param and param.HasValue:
+            valor = param.AsDouble()
+
+            if valor and valor > 0:
+                return convertir_volumen_a_m3(valor)
+
+    except:
+        pass
+
+    return 0.0
+
+
+def obtener_volumen_solido_desde_geometria(geo):
+    """
+    Recorre geometria Revit y suma volumen de sólidos.
+    Incluye GeometryInstance para familias anidadas o instanciadas.
+    El volumen viene en unidades internas de Revit, pies cúbicos.
+    """
+
+    volumen_total = 0.0
+
+    if geo is None:
+        return volumen_total
+
+    for obj in geo:
+
+        try:
+            if isinstance(obj, Solid):
+                if obj.Volume and obj.Volume > 0:
+                    volumen_total += obj.Volume
+
+            elif isinstance(obj, GeometryInstance):
+                geo_inst = obj.GetInstanceGeometry()
+
+                for inst_obj in geo_inst:
+                    try:
+                        if isinstance(inst_obj, Solid):
+                            if inst_obj.Volume and inst_obj.Volume > 0:
+                                volumen_total += inst_obj.Volume
+                    except:
+                        pass
+
+        except:
+            pass
+
+    return volumen_total
+
+
+def obtener_volumen_geometria_m3(elemento):
+    """
+    Obtiene volumen desde geometria del elemento.
+    
+    """
+
+    try:
+        opt = Options()
+        opt.ComputeReferences = False
+        opt.IncludeNonVisibleObjects = False
+
+        geo = elemento.get_Geometry(opt)
+
+        volumen_interno = obtener_volumen_solido_desde_geometria(geo)
+
+        if volumen_interno > 0:
+            return convertir_volumen_a_m3(volumen_interno)
+
+    except:
+        pass
+
+    return 0.0
+
+
+def obtener_volumen_m3(elemento):
+    """
+    Orden recomendado:
+    1. Intentar parametro HOST_VOLUME_COMPUTED.
+    2. Si no existe o viene cero, calcular desde geometria.
+    """
+
+    volumen = obtener_volumen_parametro_m3(elemento)
+
+    if volumen > 0:
+        return volumen
+
+    volumen = obtener_volumen_geometria_m3(elemento)
+
+    if volumen > 0:
+        return volumen
+
+    return 0.0
+
+
+def obtener_material_por_parametro(elemento):
+    """
+    Intenta obtener material desde STRUCTURAL_MATERIAL_PARAM.
+    """
+
+    try:
+        param = elemento.get_Parameter(
+            BuiltInParameter.STRUCTURAL_MATERIAL_PARAM
+        )
+
+        if param and param.HasValue:
+            mat_id = param.AsElementId()
+
+            if mat_id and mat_id != ElementId.InvalidElementId:
+                material = elemento.Document.GetElement(mat_id)
+
+                if material:
+                    return material.Name.upper()
+
+    except:
+        pass
+
+    return ""
+
+
+def obtener_material_por_material_ids(elemento):
+    """
+    Respaldo: obtiene materiales mediante GetMaterialIds(False).
+    """
+
+    nombres = []
+
+    try:
+        material_ids = elemento.GetMaterialIds(False)
+
+        for mat_id in material_ids:
+            material = elemento.Document.GetElement(mat_id)
+
+            if material:
+                nombres.append(material.Name.upper())
+
+    except:
+        pass
+
+    return " ".join(nombres)
+
+
+def obtener_nombre_material(elemento):
+    """
+    Obtiene nombre del material por parametro o por material ids.
+    """
+
+    nombre = obtener_material_por_parametro(elemento)
+
+    if nombre:
+        return nombre
+
+    nombre = obtener_material_por_material_ids(elemento)
+
+    if nombre:
+        return nombre
+
+    return ""
+
+
+def es_acero(nombre_material):
+    if not nombre_material:
+        return False
+
+    keywords = [
+        "ACERO",
+        "STEEL",
+        "A36",
+        "A572",
+        "A992",
+        "ER70",
+        "METAL",
+        "METALICO",
+        "METÁLICO",
+        "STRUCTURAL STEEL",
+        "ES-Acero",
+        "ES-Acero-A36",
+        "ES-Acero-A572",
+        "ES-Acero-A992",
+        "ES-Acero-ER70",
+        "ES-Acero-ASTM - A569",
+        "ASTM",
+        "Steel",
+        "Steel - ASTM A36",
+        "Steel - ASTM A572",
+        "Steel - ASTM A992",
+    ]
+
+    for k in keywords:
+        if k in nombre_material:
+            return True
+
+    return False
+
+
+def es_hormigon(nombre_material):
+    if not nombre_material:
+        return False
+
+    keywords = [
+        "HORMIGON",
+        "HORMIGÓN",
+        "CONCRETE",
+        "CONCRETO",
+        "HA",
+        "H10",
+        "H20",
+        "H25",
+        "H30",
+        "H35",
+        "H40",
+        "RC",
+        "G10",
+        "G20",
+        "G25",
+        "G30",
+        "ES-Hormigon-G10",
+        "ES-Hormigon-G20",
+        "ES-Hormigon-G25",
+        "ES-Hormigon-G30",
+        "ES-Hormigón-G10",
+        "ES-Hormigón-G20",
+        "ES-Hormigón-G25",
+        "ES-Hormigón-G30",
+        "Concrete, Cast-in-Place gray",
+        "Concrete, Cast In Situ",
+        "Concrete, Cast-in-Place Concrete",
+        "Concrete, Cast In Place Concrete -35 MPa",
+        "Concrete, Precast Concrete",
+        "Concrete, Precast",
+        
+        ]
+
+    for k in keywords:
+        if k in nombre_material:
+            return True
+
+    return False
+
+
+def obtener_largo_m(elemento):
+    """
+    Obtiene largo en metros.
+    Para framing usa STRUCTURAL_FRAME_CUT_LENGTH.
+    Para otros elementos intenta parametros alternativos.
+    """
+
+    parametros_largo = [
+        BuiltInParameter.STRUCTURAL_FRAME_CUT_LENGTH,
+        BuiltInParameter.INSTANCE_LENGTH_PARAM,
+        BuiltInParameter.CURVE_ELEM_LENGTH
+    ]
+
+    for bip in parametros_largo:
+        try:
+            param = elemento.get_Parameter(bip)
+
+            if param and param.HasValue:
+                valor = param.AsDouble()
+
+                if valor and valor > 0:
+                    largo_m = convertir_longitud_a_m(valor)
+
+                    if largo_m > 0:
+                        return largo_m
+
+        except:
+            pass
+
+    return 1.0
+
+
+def nombre_categoria(elemento):
+    try:
+        if elemento.Category:
+            return elemento.Category.Name
+    except:
+        pass
+
+    return "Sin categoria"
+
+
+def nombre_elemento(elemento):
+    try:
+        return elemento.Name
+    except:
+        return "Elemento sin nombre"
+
+
+def id_elemento_texto(elemento):
+    """
+    Compatible con distintas versiones.
+    En algunas APIs existe IntegerValue, en otras Value.
+    """
+
+    try:
+        return str(elemento.Id.IntegerValue)
+    except:
+        pass
+
+    try:
+        return str(elemento.Id.Value)
+    except:
+        pass
+
+    try:
+        return str(elemento.Id)
+    except:
+        return "Sin Id"
+
+
+# ================================================================
+# DOCUMENTO
+# ================================================================
+
+doc = revit.doc
+active_view = doc.ActiveView
+
+
+# ================================================================
+# RECOLECCION DE ELEMENTOS (SOLO VISTA ACTIVA)
+# ================================================================
+
+categorias = [
+    BuiltInCategory.OST_StructuralFraming,
+    BuiltInCategory.OST_StructuralColumns,
+    BuiltInCategory.OST_StructuralFoundation
+]
+
+elementos = []
+
+for cat in categorias:
+    try:
+        collector = (
+            FilteredElementCollector(doc, active_view.Id)
+            .OfCategory(cat)
+            .WhereElementIsNotElementType()
+        )
+
+        elementos.extend(list(collector))
+
+    except:
+        pass
+
+
+# ================================================================
+# PROCESAMIENTO
+# ================================================================
+
+resultado_acero = {}
+resultado_hormigon = {}
+total_hormigon_m3 = 0.0
+
+elementos_sin_material = []
+elementos_sin_volumen = []
+elementos_no_clasificados = []
+
+detalle_acero = []
+detalle_hormigon = []
+
+for elem in elementos:
+
+    volumen_m3 = obtener_volumen_m3(elem)
+
+    if volumen_m3 <= 0:
+        elementos_sin_volumen.append(elem)
+        continue
+
+    nombre_mat = obtener_nombre_material(elem)
+
+    if not nombre_mat:
+        elementos_sin_material.append(elem)
+        continue
+
+    if es_acero(nombre_mat):
+
+        largo_m = obtener_largo_m(elem)
+
+        peso_total_kg = m3_a_kg(volumen_m3, DENSIDAD_ACERO)
+
+        if largo_m > 0:
+            peso_lineal_kg_m = peso_total_kg / largo_m
+        else:
+            peso_lineal_kg_m = 0.0
+
+        clase_nw = clasificar_nw(peso_lineal_kg_m)
+
+        if clase_nw not in resultado_acero:
+            resultado_acero[clase_nw] = []
+
+        resultado_acero[clase_nw].append(peso_total_kg)
+
+        detalle_acero.append({
+            "elemento": elem,
+            "categoria": nombre_categoria(elem),
+            "nombre": nombre_elemento(elem),
+            "material": nombre_mat,
+            "volumen_m3": volumen_m3,
+            "largo_m": largo_m,
+            "peso_kg": peso_total_kg,
+            "peso_lineal": peso_lineal_kg_m,
+            "clase": clase_nw
+        })
+
+    elif es_hormigon(nombre_mat):
+
+        total_hormigon_m3 += volumen_m3
+
+        if nombre_mat not in resultado_hormigon:
+            resultado_hormigon[nombre_mat] = {
+                "cantidad": 0,
+                "volumen": 0.0
+            }
+
+        resultado_hormigon[nombre_mat]["cantidad"] += 1
+        resultado_hormigon[nombre_mat]["volumen"] += volumen_m3
+
+        detalle_hormigon.append({
+            "elemento": elem,
+            "categoria": nombre_categoria(elem),
+            "nombre": nombre_elemento(elem),
+            "material": nombre_mat,
+            "volumen_m3": volumen_m3
+        })
+
+    else:
+
+        elementos_no_clasificados.append(elem)
+
+
+# ================================================================
+# TOTALES
+# ================================================================
+
+total_acero_kg = 0.0
+
+for clase in resultado_acero:
+    total_acero_kg += sum(resultado_acero[clase])
+
+peso_conexiones_kg = total_acero_kg * FACTOR_CONEXIONES
+total_acero_con_conexiones_kg = total_acero_kg + peso_conexiones_kg
+
+total_hormigon_kg = m3_a_kg(total_hormigon_m3, DENSIDAD_HORMIGON)
+
+
+# ================================================================
+# REPORTE PYREVIT
+# ================================================================
+
+output = script.get_output()
+output.close_others()
+output.set_title("Cubicacion Estructural - {}".format(doc.Title))
+
+output.print_md("# Reporte de Cubicacion Estructural")
+output.print_md("**Proyecto:** {}".format(doc.Title))
+output.print_md("**Vista activa:** {}".format(active_view.Name))
+output.print_md("**Elementos estructurales encontrados:** {}".format(len(elementos)))
+output.print_md("**Elementos de acero detectados:** {}".format(len(detalle_acero)))
+output.print_md("**Elementos de hormigon detectados:** {}".format(len(detalle_hormigon)))
+
+if len(elementos_sin_volumen) > 0:
+    output.print_md(
+        "**Advertencia:** Elementos sin volumen valido: {}".format(
+            len(elementos_sin_volumen)
+        )
+    )
+
+if len(elementos_sin_material) > 0:
+    output.print_md(
+        "**Advertencia:** Elementos sin material asignado o no detectable: {}".format(
+            len(elementos_sin_material)
+        )
+    )
+
+if len(elementos_no_clasificados) > 0:
+    output.print_md(
+        "**Advertencia:** Elementos con material no clasificado como acero ni hormigon: {}".format(
+            len(elementos_no_clasificados)
+        )
+    )
+
+
+# ================================================================
+# TABLA ACERO
+# ================================================================
+
+output.print_md("---")
+output.print_md("## Acero Estructural")
+
+tabla_acero = []
+
+for clase in ORDEN_CLASES:
+
+    if clase in resultado_acero:
+
+        pesos = resultado_acero[clase]
+        total_clase = sum(pesos)
+
+        tabla_acero.append([
+            clase,
+            str(len(pesos)),
+            "{:,.1f}".format(total_clase),
+            "{:,.2f}".format(total_clase / 1000.0)
+        ])
+
+for clase in resultado_acero:
+
+    if clase not in ORDEN_CLASES:
+
+        pesos = resultado_acero[clase]
+        total_clase = sum(pesos)
+
+        tabla_acero.append([
+            clase,
+            str(len(pesos)),
+            "{:,.1f}".format(total_clase),
+            "{:,.2f}".format(total_clase / 1000.0)
+        ])
+
+if len(tabla_acero) > 0:
+
+    output.print_table(
+        table_data=tabla_acero,
+        title="Clasificacion por Nominal Weight",
+        columns=[
+            "Clase NW",
+            "N Elementos",
+            "Peso kg",
+            "Peso ton",
+        ]
+    )
+
+else:
+
+    output.print_md(
+        "**No se encontraron elementos de acero estructural con material reconocible.**"
+    )
+
+output.print_md(
+    "**Subtotal acero:** {:,.1f} kg ({:,.2f} ton)".format(
+        total_acero_kg,
+        total_acero_kg / 1000.0
+    )
+)
+
+output.print_md(
+    "**Factor conexiones ({:.0f}%):** + {:,.1f} kg".format(
+        FACTOR_CONEXIONES * 100.0,
+        peso_conexiones_kg
+    )
+)
+
+output.print_md(
+    "### Total acero con conexiones: {:,.1f} kg ({:,.2f} ton)".format(
+        total_acero_con_conexiones_kg,
+        total_acero_con_conexiones_kg / 1000.0
+    )
+)
+
+
+# ================================================================
+# HORMIGON
+# ================================================================
+
+output.print_md("---")
+output.print_md("## Hormigon Estructural")
+
+tabla_hormigon = []
+cantidad_total_hormigon = 0
+volumen_total_hormigon = 0.0
+
+for material in sorted(resultado_hormigon.keys()):
+
+    cantidad = resultado_hormigon[material]["cantidad"]
+    volumen = resultado_hormigon[material]["volumen"]
+
+    cantidad_total_hormigon += cantidad
+    volumen_total_hormigon += volumen
+
+    tabla_hormigon.append([
+        material,
+        str(cantidad),
+        "{:,.2f}".format(volumen)
+    ])
+
+if len(tabla_hormigon) > 0:
+
+    tabla_hormigon.append([
+        "TOTAL",
+        str(cantidad_total_hormigon),
+        "{:,.2f}".format(volumen_total_hormigon)
+    ])
+
+    output.print_table(
+        table_data=tabla_hormigon,
+        title="Desglose por Material de Hormigon",
+        columns=[
+            "Nombre de Material",
+            "Cantidad de Elementos",
+            "Volumen (m3)"
+        ]
+    )
+
+else:
+
+    output.print_md(
+        "**No se encontraron elementos de hormigon estructural reconocibles.**"
+    )
+
+output.print_md(
+    "**Volumen total:** {:,.2f} m3".format(
+        total_hormigon_m3
+    )
+)
+
+output.print_md(
+    "**Peso total:** {:,.1f} kg ({:,.2f} ton)".format(
+        total_hormigon_kg,
+        total_hormigon_kg / 1000.0
+    )
+)
+
+
+# ================================================================
+# CONTROL DE REVISION
+# ================================================================
+
+output.print_md("---")
+output.print_md("## Control de revision")
+
+tabla_control = [
+    ["Elementos revisados", str(len(elementos))],
+    ["Acero detectado", str(len(detalle_acero))],
+    ["Hormigon detectado", str(len(detalle_hormigon))],
+    ["Sin volumen valido", str(len(elementos_sin_volumen))],
+    ["Sin material detectable", str(len(elementos_sin_material))],
+    ["Material no clasificado", str(len(elementos_no_clasificados))]
+]
+
+if len(tabla_control) > 0:
+    output.print_table(
+        table_data=tabla_control,
+        title="Resumen de control",
+        columns=[
+            "Concepto",
+            "Cantidad"
+        ]
+    )
+
+
+# ================================================================
+# ELEMENTOS NO CLASIFICADOS
+# ================================================================
+
+if len(elementos_no_clasificados) > 0:
+
+    output.print_md("---")
+    output.print_md("## Elementos con material no clasificado")
+
+    tabla_no_clasificados = []
+
+    limite = 50
+    contador = 0
+
+    for elem in elementos_no_clasificados:
+
+        if contador >= limite:
+            break
+
+        tabla_no_clasificados.append([
+            id_elemento_texto(elem),
+            nombre_categoria(elem),
+            nombre_elemento(elem),
+            obtener_nombre_material(elem)
+        ])
+
+        contador += 1
+
+    if len(tabla_no_clasificados) > 0:
+        output.print_table(
+            table_data=tabla_no_clasificados,
+            title="Primeros {} elementos no clasificados".format(
+                len(tabla_no_clasificados)
+            ),
+            columns=[
+                "ElementId",
+                "Categoria",
+                "Nombre",
+                "Material"
+            ]
+        )
+
+
+# ================================================================
+# ELEMENTOS SIN MATERIAL
+# ================================================================
+
+if len(elementos_sin_material) > 0:
+
+    output.print_md("---")
+    output.print_md("## Elementos sin material detectable")
+
+    tabla_sin_mat = []
+
+    limite = 50
+    contador = 0
+
+    for elem in elementos_sin_material:
+
+        if contador >= limite:
+            break
+
+        tabla_sin_mat.append([
+            id_elemento_texto(elem),
+            nombre_categoria(elem),
+            nombre_elemento(elem)
+        ])
+
+        contador += 1
+
+    if len(tabla_sin_mat) > 0:
+        output.print_table(
+            table_data=tabla_sin_mat,
+            title="Primeros {} elementos sin material".format(
+                len(tabla_sin_mat)
+            ),
+            columns=[
+                "ElementId",
+                "Categoria",
+                "Nombre"
+            ]
+        )
+
+
+# ================================================================
+# ELEMENTOS SIN VOLUMEN
+# ================================================================
+
+if len(elementos_sin_volumen) > 0:
+
+    output.print_md("---")
+    output.print_md("## Elementos sin volumen valido")
+
+    tabla_sin_volumen = []
+
+    limite = 50
+    contador = 0
+
+    for elem in elementos_sin_volumen:
+
+        if contador >= limite:
+            break
+
+        tabla_sin_volumen.append([
+            id_elemento_texto(elem),
+            nombre_categoria(elem),
+            nombre_elemento(elem),
+            obtener_nombre_material(elem)
+        ])
+
+        contador += 1
+
+    if len(tabla_sin_volumen) > 0:
+        output.print_table(
+            table_data=tabla_sin_volumen,
+            title="Primeros {} elementos sin volumen valido".format(
+                len(tabla_sin_volumen)
+            ),
+            columns=[
+                "ElementId",
+                "Categoria",
+                "Nombre",
+                "Material"
+            ]
+        )
+
+
+output.print_md("---")
+output.print_md("*Generado con pyRevit - SebaSaezS*")

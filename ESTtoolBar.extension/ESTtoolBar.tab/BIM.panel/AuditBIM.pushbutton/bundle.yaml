@@ -1,0 +1,15 @@
+# bundle title
+title:
+  en_us: "Audit BIM"
+  es_es: "Auditoría BIM"
+
+# bundle tooltip
+tooltip:
+  en_us: "Audit elements with and without BIM_TAG"
+  es_es: "Auditoría de elementos con y sin BIM_TAG"
+
+# minimum supported Revit version
+min_revit_version: 2026
+
+#bundle author
+author: Sebastián Sáez S.

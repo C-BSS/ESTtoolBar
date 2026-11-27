@@ -1,0 +1,1002 @@
+# -*- coding: utf-8 -*-
+# Cubicacion Automatica Estructural
+# Sebastian Saez S. - SebaSaezS 2026
+# Revit 2026 + pyRevit IronPython
+# Modelos de acero, hormigon o mixtos. Exportacion XLSX segura.
+
+import clr
+import zipfile
+from xml.sax.saxutils import escape, quoteattr
+
+clr.AddReference('RevitAPI')
+clr.AddReference('RevitAPIUI')
+clr.AddReference('System.Windows.Forms')
+
+from Autodesk.Revit.DB import (
+    FilteredElementCollector, BuiltInCategory, BuiltInParameter,
+    UnitUtils, UnitTypeId, ElementId, Options, Solid, GeometryInstance
+)
+from System.Windows.Forms import SaveFileDialog, DialogResult
+from pyrevit import revit, script
+
+DENSIDAD_ACERO = 7850.0
+DENSIDAD_HORMIGON = 2400.0
+FACTOR_CONEXIONES = 0.05
+# Tolerancia para mostrar diferencias en el reporte pyRevit.
+# El XLSX conserva el detalle completo, incluidos los elementos sin diferencia.
+TOLERANCIA_DIFERENCIA_KG = 0.01
+TOLERANCIA_DIFERENCIA_PCT = 0.0001
+
+CLASES_NW = [
+    (0, 29.9, "Estructura Liviana"),
+    (30, 59.9, "Estructura Media"),
+    (60, 89.9, "Estructura Pesada"),
+    (90, 99999, "Estructura Extrapesada")
+]
+ORDEN_CLASES = [x[2] for x in CLASES_NW]
+CATEGORIAS_ACERO = [
+    "Structural Columns", "Structural Framing",
+    "Structural Foundations", "Other"
+]
+
+
+# ================================================================
+# FUNCIONES DE CUBICACION
+# ================================================================
+
+def m3_a_kg(volumen, densidad):
+    return volumen * densidad
+
+
+def clasificar_nw(peso_lineal):
+    for minimo, maximo, nombre in CLASES_NW:
+        if peso_lineal >= minimo and peso_lineal < maximo:
+            return nombre
+    return "Sin clasificar"
+
+
+def convertir_volumen_m3(valor):
+    try:
+        return UnitUtils.ConvertFromInternalUnits(valor, UnitTypeId.CubicMeters)
+    except:
+        return 0.0
+
+
+def convertir_longitud_m(valor):
+    try:
+        return UnitUtils.ConvertFromInternalUnits(valor, UnitTypeId.Meters)
+    except:
+        return 0.0
+
+
+def sumar_solidos(geometria):
+    total = 0.0
+    if geometria is None:
+        return total
+    for obj in geometria:
+        try:
+            if isinstance(obj, Solid) and obj.Volume > 0:
+                total += obj.Volume
+            elif isinstance(obj, GeometryInstance):
+                total += sumar_solidos(obj.GetInstanceGeometry())
+        except:
+            pass
+    return total
+
+
+def obtener_volumen_m3(elemento):
+    try:
+        parametro = elemento.get_Parameter(BuiltInParameter.HOST_VOLUME_COMPUTED)
+        if parametro and parametro.HasValue:
+            valor = parametro.AsDouble()
+            if valor > 0:
+                return convertir_volumen_m3(valor)
+    except:
+        pass
+    try:
+        opciones = Options()
+        opciones.ComputeReferences = False
+        opciones.IncludeNonVisibleObjects = False
+        valor = sumar_solidos(elemento.get_Geometry(opciones))
+        if valor > 0:
+            return convertir_volumen_m3(valor)
+    except:
+        pass
+    return 0.0
+
+
+def obtener_material(elemento):
+    try:
+        parametro = elemento.get_Parameter(BuiltInParameter.STRUCTURAL_MATERIAL_PARAM)
+        if parametro and parametro.HasValue:
+            material_id = parametro.AsElementId()
+            if material_id and material_id != ElementId.InvalidElementId:
+                material = elemento.Document.GetElement(material_id)
+                if material:
+                    return material.Name.upper()
+    except:
+        pass
+    nombres = []
+    try:
+        for material_id in elemento.GetMaterialIds(False):
+            material = elemento.Document.GetElement(material_id)
+            if material:
+                nombres.append(material.Name.upper())
+    except:
+        pass
+    return " ".join(nombres)
+
+
+def es_acero(nombre):
+    if not nombre:
+        return False
+    nombre = nombre.upper()
+    for clave in [
+        "ACERO", "STEEL", "A36", "A572", "A992", "ER70",
+        "METAL", "STRUCTURAL STEEL", "ASTM", "ES-Acero",
+        "ES-Acero-A36", "ES-Acero-A572", "ES-Acero-A992", "ES-Acero-ER70"
+        "Es-Acero-ASTM", "Steel - ASTM A36", "Steel - ASTM A572",
+        "Steel - ASTM A992", "Steel - ASTM ER70"
+    ]:
+        if clave in nombre:
+            return True
+    return False
+
+
+def es_hormigon(nombre):
+    if not nombre:
+        return False
+    nombre = nombre.upper()
+    for clave in [
+        "HORMIGON", "HORMIGÓN", "CONCRETE", "CONCRETO",
+        "H10", "H20", "H25", "H30", "H35", "H40",
+        "G10", "G20", "G25", "G30", "CAST-IN-PLACE",
+        "CAST IN SITU", "PRECAST", "ES-Hormigon-G10",
+        "ES-Hormigon-G20", "ES-Hormigon-G25", "ES-Hormigon-G30",
+        "ES-Hormigon-G35", "ES-Hormigon-G40"
+    ]:
+        if clave in nombre:
+            return True
+    return False
+
+
+def obtener_tipo(elemento):
+    try:
+        tipo_id = elemento.GetTypeId()
+        if tipo_id and tipo_id != ElementId.InvalidElementId:
+            return elemento.Document.GetElement(tipo_id)
+    except:
+        pass
+    return None
+
+def buscar_parametro(elemento, nombres):
+    buscados = [x.upper().strip() for x in nombres]
+    for fuente, origen in [(elemento, "Instancia"), (obtener_tipo(elemento), "Tipo")]:
+        if fuente is None:
+            continue
+        try:
+            for parametro in fuente.Parameters:
+                try:
+                    if parametro.Definition.Name.upper().strip() in buscados:
+                        return parametro, parametro.Definition.Name, origen
+                except:
+                    pass
+        except:
+            pass
+    return None, "", ""
+
+def valor_numerico_parametro(parametro):
+    if parametro is None or not parametro.HasValue:
+        return 0.0
+    try:
+        return float(parametro.AsDouble())
+    except:
+        pass
+    try:
+        return float(parametro.AsInteger())
+    except:
+        pass
+    try:
+        texto = parametro.AsString() or parametro.AsValueString() or ""
+        return float(texto.strip().replace(" ", "").replace(",", "."))
+    except:
+        return 0.0
+
+def obtener_largo_m(elemento):
+    """Usa solo Length, System Length o LARGO. Nunca usa Cut Length."""
+    for nombre_buscado in ["Length", "System Length", "LARGO"]:
+        parametro, nombre, origen = buscar_parametro(elemento, [nombre_buscado])
+        if parametro:
+            try:
+                valor = parametro.AsDouble()
+                if valor > 0:
+                    largo = convertir_longitud_m(valor)
+                    if largo > 0:
+                        return largo, "{} ({})".format(nombre, origen)
+            except:
+                pass
+    return 0.0, "Sin longitud valida"
+
+def obtener_peso_lineal_calculado(elemento):
+    parametro, nombre, origen = buscar_parametro(
+        elemento, ["Kg_ml", "KG_ML", "KG/ML", "KG_M"])
+    kg_ml = valor_numerico_parametro(parametro)
+    largo, fuente_largo = obtener_largo_m(elemento)
+    if kg_ml > 0 and largo > 0:
+        return kg_ml * largo, kg_ml, largo, "{} x {}".format(nombre, fuente_largo), ""
+    motivo = ""
+    if kg_ml > 0 and largo <= 0:
+        motivo = "Kg_ml presente, pero no existe Length, System Length o LARGO valido"
+    return 0.0, kg_ml, largo, "Sin peso lineal calculable", motivo
+
+def obtener_peso_declarado(elemento):
+    """Busca PESO y luego Kg_Total, sin usar el valor lineal."""
+    for nombre_buscado in ["PESO", "Kg_Total"]:
+        parametro, nombre, origen = buscar_parametro(elemento, [nombre_buscado])
+        peso = valor_numerico_parametro(parametro)
+        if peso > 0:
+            return peso, "{} ({})".format(nombre, origen)
+    return 0.0, "Sin PESO ni Kg_Total"
+
+def obtener_peso_elemento(elemento):
+    """Peso principal: Kg_ml por largo; respaldo: PESO y luego Kg_Total."""
+    peso_lineal, kg_ml, largo, fuente_lineal, motivo_largo = obtener_peso_lineal_calculado(elemento)
+    if peso_lineal > 0:
+        return peso_lineal, kg_ml, largo, fuente_lineal, "", motivo_largo
+    peso_declarado, fuente_declarado = obtener_peso_declarado(elemento)
+    if peso_declarado > 0:
+        return peso_declarado, 0.0, largo, fuente_declarado, "", motivo_largo
+    return 0.0, kg_ml, largo, "Sin parametro de peso", "No contiene Kg_ml utilizable, PESO ni Kg_Total", motivo_largo
+
+def texto_tipo_familia(elemento):
+    partes = []
+    try: partes.append(elemento.Name)
+    except: pass
+    try: partes.append(elemento.Category.Name)
+    except: pass
+    tipo = obtener_tipo(elemento)
+    if tipo:
+        try: partes.append(tipo.Name)
+        except: pass
+        try: partes.append(tipo.FamilyName)
+        except: pass
+    return " ".join([x for x in partes if x]).upper()
+
+def es_baranda(elemento):
+    texto = texto_tipo_familia(elemento)
+    return any(x in texto for x in ["RAILING", "BARANDA", "BARANDILLA", "GUARDRAIL"])
+
+def es_perno_anclaje(elemento):
+    texto = texto_tipo_familia(elemento)
+    categoria = nombre_categoria(elemento).upper()
+    conexion = any(x in categoria for x in ["STRUCTURAL CONNECTION", "CONEXION ESTRUCTURAL", "CONEXIÓN ESTRUCTURAL", "CONNECTION BOLT"])
+    perno = any(x in texto for x in ["PERNO", "ANCHOR BOLT", "ANCHOR ROD", "ANCLAJE", "BOLT"])
+    return conexion and perno
+
+def es_columna_fundacion(elemento):
+    texto = texto_tipo_familia(elemento)
+    categoria = nombre_categoria(elemento).upper()
+    columna = any(x in categoria for x in ["STRUCTURAL COLUMN", "COLUMNA ESTRUCTURAL", "COLUMNAS ESTRUCTURALES"])
+    fundacion = any(x in texto for x in ["FUNDACION", "FUNDACIÓN", "FOUNDATION", "PEDESTAL"])
+    return columna and fundacion
+
+def calcular_grout_columna(elemento):
+    try:
+        caja = elemento.get_BoundingBox(active_view) or elemento.get_BoundingBox(None)
+        if caja is None: return None
+        ancho = convertir_longitud_m(abs(caja.Max.X - caja.Min.X))
+        fondo = convertir_longitud_m(abs(caja.Max.Y - caja.Min.Y))
+        if ancho <= 0 or fondo <= 0: return None
+        perimetro = 2.0 * (ancho + fondo)
+        altura = 0.025
+        proyeccion = 0.025
+        area_seccion = 0.5 * altura * proyeccion
+        return perimetro, altura, proyeccion, area_seccion, perimetro * area_seccion
+    except:
+        return None
+
+def nombre_categoria(elemento):
+    try:
+        return elemento.Category.Name if elemento.Category else "Sin categoria"
+    except:
+        return "Sin categoria"
+
+
+def categoria_acero(elemento):
+    nombre = nombre_categoria(elemento).upper().strip()
+    if ("STRUCTURAL COLUMN" in nombre or
+            "COLUMNAS ESTRUCTURALES" in nombre or
+            "COLUMNA ESTRUCTURAL" in nombre):
+        return "Structural Columns"
+    if ("STRUCTURAL FRAMING" in nombre or
+            "ARMAZON ESTRUCTURAL" in nombre or
+            "ARMAZÓN ESTRUCTURAL" in nombre or
+            "VIGAS ESTRUCTURALES" in nombre):
+        return "Structural Framing"
+    if ("STRUCTURAL FOUNDATION" in nombre or
+            "CIMENTACION ESTRUCTURAL" in nombre or
+            "CIMENTACIÓN ESTRUCTURAL" in nombre or
+            "FUNDACION ESTRUCTURAL" in nombre or
+            "FUNDACIÓN ESTRUCTURAL" in nombre):
+        return "Structural Foundations"
+    return "Other"
+
+
+def nombre_elemento(elemento):
+    try:
+        return elemento.Name
+    except:
+        return "Elemento sin nombre"
+
+
+def id_texto(elemento):
+    try:
+        return str(elemento.Id.IntegerValue)
+    except:
+        try:
+            return str(elemento.Id.Value)
+        except:
+            return str(elemento.Id)
+
+
+# ================================================================
+# EXPORTACION XLSX SEGURA, SIN EXCEL INTEROP
+# ================================================================
+
+def a_unicode(valor):
+    try:
+        return unicode(valor)
+    except NameError:
+        return str(valor)
+    except:
+        try:
+            return str(valor)
+        except:
+            return u""
+
+
+def limpiar_texto_xml(valor):
+    texto = a_unicode(valor)
+    limpio = []
+    for caracter in texto:
+        codigo = ord(caracter)
+        permitido = (
+            codigo == 0x09 or codigo == 0x0A or codigo == 0x0D or
+            (codigo >= 0x20 and codigo <= 0xD7FF) or
+            (codigo >= 0xE000 and codigo <= 0xFFFD) or
+            (codigo >= 0x10000 and codigo <= 0x10FFFF)
+        )
+        if permitido and codigo not in (0xFFFE, 0xFFFF):
+            limpio.append(caracter)
+        else:
+            limpio.append(u" ")
+    return u"".join(limpio)
+
+
+def limpiar_nombre_hoja(nombre, usados):
+    nombre = limpiar_texto_xml(nombre)
+    for caracter in [u"[", u"]", u":", u"*", u"?", u"/", u"\\"]:
+        nombre = nombre.replace(caracter, u"-")
+    nombre = nombre.strip().strip(u"'") or u"Hoja"
+    nombre = nombre[:31]
+    base = nombre
+    contador = 2
+    while nombre.upper() in usados:
+        sufijo = u" ({})".format(contador)
+        nombre = base[:31 - len(sufijo)] + sufijo
+        contador += 1
+    usados.add(nombre.upper())
+    return nombre
+
+
+def columna_excel(numero):
+    texto = ""
+    while numero:
+        numero, resto = divmod(numero - 1, 26)
+        texto = chr(65 + resto) + texto
+    return texto
+
+
+def celda_xml(fila, columna, valor, estilo=0):
+    referencia = columna_excel(columna) + str(fila)
+    estilo_texto = ' s="{}"'.format(estilo) if estilo else ""
+    if isinstance(valor, bool):
+        return '<c r="{}"{} t="b"><v>{}</v></c>'.format(
+            referencia, estilo_texto, 1 if valor else 0)
+    if isinstance(valor, (int, float)):
+        return '<c r="{}"{}><v>{}</v></c>'.format(
+            referencia, estilo_texto, valor)
+    texto = escape(limpiar_texto_xml(valor))
+    return ('<c r="{}"{} t="inlineStr"><is>'
+            '<t xml:space="preserve">{}</t></is></c>').format(
+                referencia, estilo_texto, texto)
+
+
+def hoja_xml(titulo, columnas, filas):
+    datos = [[titulo]] + [columnas] + filas
+    ultima_columna = columna_excel(max(1, len(columnas)))
+    ultima_fila = max(2, len(datos))
+    partes = [
+        '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>',
+        '<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">',
+        '<sheetViews><sheetView workbookViewId="0">',
+        '<pane ySplit="2" topLeftCell="A3" activePane="bottomLeft" state="frozen"/>',
+        '</sheetView></sheetViews><sheetFormatPr defaultRowHeight="15"/><sheetData>'
+    ]
+    for indice_fila, valores in enumerate(datos, 1):
+        if indice_fila == 1:
+            estilo = 1
+        elif indice_fila == 2:
+            estilo = 2
+        elif valores and limpiar_texto_xml(valores[0]).upper() == u"TOTAL":
+            estilo = 3
+        else:
+            estilo = 0
+        partes.append('<row r="{}">'.format(indice_fila))
+        for indice_columna, valor in enumerate(valores, 1):
+            partes.append(celda_xml(
+                indice_fila, indice_columna, valor, estilo))
+        partes.append('</row>')
+    partes.extend([
+        '</sheetData>',
+        '<autoFilter ref="A2:{}{}"/>'.format(
+            ultima_columna, ultima_fila),
+        '</worksheet>'
+    ])
+    return u"".join(partes).encode("utf-8")
+
+
+def exportar_xlsx(ruta, hojas):
+    usados = set()
+    nombres = [limpiar_nombre_hoja(x[0], usados) for x in hojas]
+    tipos = [
+        '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>',
+        '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">',
+        '<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>',
+        '<Default Extension="xml" ContentType="application/xml"/>',
+        '<Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>',
+        '<Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/>'
+    ]
+    libro = [
+        '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>',
+        '<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" ',
+        'xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets>'
+    ]
+    relaciones = [
+        '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>',
+        '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'
+    ]
+    for indice, nombre in enumerate(nombres, 1):
+        tipos.append('<Override PartName="/xl/worksheets/sheet{}.xml" '
+                     'ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>'.format(indice))
+        libro.append('<sheet name={} sheetId="{}" r:id="rId{}"/>'.format(
+            quoteattr(nombre), indice, indice))
+        relaciones.append('<Relationship Id="rId{}" '
+                          'Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" '
+                          'Target="worksheets/sheet{}.xml"/>'.format(indice, indice))
+    tipos.append('</Types>')
+    libro.append('</sheets></workbook>')
+    relaciones.append('<Relationship Id="rId{}" '
+                      'Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" '
+                      'Target="styles.xml"/></Relationships>'.format(len(hojas) + 1))
+    raiz = ('<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+            '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'
+            '<Relationship Id="rId1" '
+            'Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" '
+            'Target="xl/workbook.xml"/></Relationships>')
+    estilos = ('<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+        '<styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">'
+        '<fonts count="3"><font><sz val="11"/><name val="Calibri"/></font>'
+        '<font><b/><color rgb="FFFFFFFF"/><sz val="14"/><name val="Calibri"/></font>'
+        '<font><b/><color rgb="FFFFFFFF"/><sz val="11"/><name val="Calibri"/></font></fonts>'
+        '<fills count="4"><fill><patternFill patternType="none"/></fill>'
+        '<fill><patternFill patternType="gray125"/></fill>'
+        '<fill><patternFill patternType="solid"><fgColor rgb="FF1F4E78"/><bgColor indexed="64"/></patternFill></fill>'
+        '<fill><patternFill patternType="solid"><fgColor rgb="FFD9EAF7"/><bgColor indexed="64"/></patternFill></fill></fills>'
+        '<borders count="1"><border><left/><right/><top/><bottom/><diagonal/></border></borders>'
+        '<cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs>'
+        '<cellXfs count="4"><xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/>'
+        '<xf numFmtId="0" fontId="1" fillId="2" borderId="0" xfId="0" applyFont="1" applyFill="1"/>'
+        '<xf numFmtId="0" fontId="2" fillId="2" borderId="0" xfId="0" applyFont="1" applyFill="1"/>'
+        '<xf numFmtId="0" fontId="0" fillId="3" borderId="0" xfId="0" applyFill="1"/></cellXfs>'
+        '<cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles>'
+        '</styleSheet>')
+    archivo = zipfile.ZipFile(ruta, "w", zipfile.ZIP_DEFLATED)
+    try:
+        archivo.writestr("[Content_Types].xml", u"".join(tipos).encode("utf-8"))
+        archivo.writestr("_rels/.rels", raiz.encode("utf-8"))
+        archivo.writestr("xl/workbook.xml", u"".join(libro).encode("utf-8"))
+        archivo.writestr("xl/_rels/workbook.xml.rels", u"".join(relaciones).encode("utf-8"))
+        archivo.writestr("xl/styles.xml", estilos.encode("utf-8"))
+        for indice, (titulo, columnas, filas) in enumerate(hojas, 1):
+            archivo.writestr("xl/worksheets/sheet{}.xml".format(indice),
+                             hoja_xml(titulo, columnas, filas))
+    finally:
+        archivo.close()
+
+
+# ================================================================
+# DOCUMENTO Y PROCESAMIENTO DE LA VISTA ACTIVA
+# ================================================================
+
+doc = revit.doc
+active_view = doc.ActiveView
+categorias = [
+    BuiltInCategory.OST_StructuralFraming,
+    BuiltInCategory.OST_StructuralColumns,
+    BuiltInCategory.OST_StructuralFoundation,
+    BuiltInCategory.OST_Railings,
+    BuiltInCategory.OST_StructConnections
+]
+try:
+    categorias.append(BuiltInCategory.OST_StructConnectionBolts)
+except:
+    pass
+elementos = []
+ids_agregados = set()
+for categoria in categorias:
+    try:
+        for elemento in FilteredElementCollector(doc, active_view.Id).OfCategory(categoria).WhereElementIsNotElementType():
+            clave = id_texto(elemento)
+            if clave not in ids_agregados:
+                elementos.append(elemento)
+                ids_agregados.add(clave)
+    except:
+        pass
+
+resultado_acero = {}
+resultado_hormigon = {}
+acero_categoria_datos = {}
+matriz_nw_datos = {}
+detalle_acero = []
+detalle_hormigon = []
+sin_volumen = []
+sin_material = []
+no_clasificados = []
+sin_parametros_peso = []
+sin_longitud = []
+detalle_barandas = []
+pernos_por_tipo = {}
+grout_columnas = []
+comparacion_nw_datos = {}
+resultado_acero_nw_declarado = {}
+detalle_comparacion_peso = []
+total_hormigon_m3 = 0.0
+
+for elemento in elementos:
+    if es_perno_anclaje(elemento):
+        tipo = texto_tipo_familia(elemento)
+        pernos_por_tipo[tipo] = pernos_por_tipo.get(tipo, 0) + 1
+        continue
+    if es_baranda(elemento):
+        peso, kg_ml, largo, fuente_peso, motivo_peso, motivo_largo = obtener_peso_elemento(elemento)
+        if motivo_peso:
+            sin_parametros_peso.append({"elemento": elemento, "categoria": nombre_categoria(elemento), "nombre": nombre_elemento(elemento), "motivo": motivo_peso})
+        if motivo_largo:
+            sin_longitud.append({"elemento": elemento, "categoria": nombre_categoria(elemento), "nombre": nombre_elemento(elemento), "motivo": motivo_largo})
+        detalle_barandas.append({"elemento": elemento, "tipo": texto_tipo_familia(elemento), "largo": largo, "kg_ml": kg_ml, "peso": peso, "fuente_peso": fuente_peso})
+        continue
+    if es_columna_fundacion(elemento):
+        datos = calcular_grout_columna(elemento)
+        if datos:
+            grout_columnas.append({"elemento": elemento, "tipo": texto_tipo_familia(elemento), "perimetro": datos[0], "altura": datos[1], "proyeccion": datos[2], "area_seccion": datos[3], "volumen": datos[4]})
+    volumen = obtener_volumen_m3(elemento)
+    if volumen <= 0:
+        sin_volumen.append(elemento)
+        continue
+    material = obtener_material(elemento)
+    if not material:
+        sin_material.append(elemento)
+        continue
+    if es_acero(material):
+        peso, kg_ml, largo, fuente_peso, motivo_peso, motivo_largo = obtener_peso_elemento(elemento)
+        if motivo_peso:
+            sin_parametros_peso.append({"elemento": elemento, "categoria": nombre_categoria(elemento), "nombre": nombre_elemento(elemento), "motivo": motivo_peso})
+        if motivo_largo:
+            sin_longitud.append({"elemento": elemento, "categoria": nombre_categoria(elemento), "nombre": nombre_elemento(elemento), "motivo": motivo_largo})
+        peso_lineal = kg_ml if kg_ml > 0 else (peso / largo if largo > 0 else 0.0)
+        clase = clasificar_nw(peso_lineal)
+        categoria = categoria_acero(elemento)
+
+        # Comparacion independiente entre ambos metodos.
+        peso_por_ml, kg_ml_comparacion, largo_comparacion, fuente_ml, motivo_largo_comparacion = obtener_peso_lineal_calculado(elemento)
+        peso_declarado, fuente_declarado = obtener_peso_declarado(elemento)
+
+        # Tabla NW independiente basada exclusivamente en PESO o Kg_Total.
+        # La clase NW se determina con Kg_ml cuando existe; si no existe,
+        # se conserva la clase calculada por el flujo principal.
+        if peso_declarado > 0:
+            resultado_acero_nw_declarado.setdefault(
+                clase, {"cantidad": 0, "peso": 0.0})
+            resultado_acero_nw_declarado[clase]["cantidad"] += 1
+            resultado_acero_nw_declarado[clase]["peso"] += peso_declarado
+
+        if peso_por_ml > 0 and peso_declarado > 0:
+            diferencia = peso_declarado - peso_por_ml
+            diferencia_pct = diferencia / peso_por_ml if peso_por_ml else 0.0
+            comparacion_nw_datos.setdefault(clase, {"cantidad": 0, "peso_ml": 0.0, "peso_declarado": 0.0})
+            comparacion_nw_datos[clase]["cantidad"] += 1
+            comparacion_nw_datos[clase]["peso_ml"] += peso_por_ml
+            comparacion_nw_datos[clase]["peso_declarado"] += peso_declarado
+            detalle_comparacion_peso.append({
+                "elemento": elemento, "categoria": nombre_categoria(elemento),
+                "nombre": nombre_elemento(elemento), "clase": clase,
+                "kg_ml": kg_ml_comparacion, "largo": largo_comparacion,
+                "peso_ml": peso_por_ml, "fuente_ml": fuente_ml,
+                "peso_declarado": peso_declarado, "fuente_declarado": fuente_declarado,
+                "diferencia": diferencia, "diferencia_pct": diferencia_pct
+            })
+        resultado_acero.setdefault(clase, []).append(peso)
+        acero_categoria_datos.setdefault(
+            categoria, {"cantidad": 0, "peso": 0.0})
+        acero_categoria_datos[categoria]["cantidad"] += 1
+        acero_categoria_datos[categoria]["peso"] += peso
+        matriz_nw_datos.setdefault(
+            clase, dict((x, 0) for x in CATEGORIAS_ACERO))
+        matriz_nw_datos[clase][categoria] += 1
+        detalle_acero.append({
+            "elemento": elemento,
+            "categoria": nombre_categoria(elemento),
+            "categoria_resumen": categoria,
+            "nombre": nombre_elemento(elemento),
+            "material": material,
+            "clase": clase,
+            "volumen": volumen,
+            "largo": largo,
+            "peso_lineal": peso_lineal,
+            "peso": peso,
+            "fuente_peso": fuente_peso
+        })
+    elif es_hormigon(material):
+        total_hormigon_m3 += volumen
+        resultado_hormigon.setdefault(
+            material, {"cantidad": 0, "volumen": 0.0})
+        resultado_hormigon[material]["cantidad"] += 1
+        resultado_hormigon[material]["volumen"] += volumen
+        detalle_hormigon.append({
+            "elemento": elemento,
+            "categoria": nombre_categoria(elemento),
+            "nombre": nombre_elemento(elemento),
+            "material": material,
+            "volumen": volumen
+        })
+    else:
+        no_clasificados.append(elemento)
+
+# ================================================================
+# CONSTRUCCION DE TABLAS
+# ================================================================
+
+total_acero = sum(sum(x) for x in resultado_acero.values())
+conexiones = total_acero * FACTOR_CONEXIONES
+acero_total = total_acero + conexiones
+total_hormigon_kg = m3_a_kg(total_hormigon_m3, DENSIDAD_HORMIGON)
+
+resumen_general = [
+    ["Elementos revisados", len(elementos), "elementos"],
+    ["Elementos acero", len(detalle_acero), "elementos"],
+    ["Elementos hormigon", len(detalle_hormigon), "elementos"],
+    ["Acero estructural", total_acero, "kg"],
+    ["Conexiones", conexiones, "kg"],
+    ["Acero total", acero_total, "kg"],
+    ["Hormigon total", total_hormigon_m3, "m3"],
+    ["Hormigon total", total_hormigon_kg, "kg"]
+]
+
+acero_categoria = []
+acero_nw = []
+matriz_nw = []
+if detalle_acero:
+    for categoria in CATEGORIAS_ACERO:
+        if categoria in acero_categoria_datos:
+            datos = acero_categoria_datos[categoria]
+            acero_categoria.append([
+                categoria, datos["cantidad"], datos["peso"],
+                datos["peso"] / 1000.0,
+                datos["peso"] / total_acero if total_acero else 0.0
+            ])
+    acero_categoria.append([
+        "TOTAL", len(detalle_acero), total_acero,
+        total_acero / 1000.0, 1.0
+    ])
+    for clase in ORDEN_CLASES + [x for x in resultado_acero if x not in ORDEN_CLASES]:
+        if clase in resultado_acero:
+            peso_clase = sum(resultado_acero[clase])
+            acero_nw.append([
+                clase, len(resultado_acero[clase]),
+                peso_clase, peso_clase / 1000.0
+            ])
+    totales = dict((x, 0) for x in CATEGORIAS_ACERO)
+    for clase in ORDEN_CLASES + [x for x in matriz_nw_datos if x not in ORDEN_CLASES]:
+        datos = matriz_nw_datos.get(
+            clase, dict((x, 0) for x in CATEGORIAS_ACERO))
+        fila = [clase]
+        total_fila = 0
+        for categoria in CATEGORIAS_ACERO:
+            fila.append(datos[categoria])
+            total_fila += datos[categoria]
+            totales[categoria] += datos[categoria]
+        fila.append(total_fila)
+        matriz_nw.append(fila)
+    matriz_nw.append([
+        "TOTAL"] + [totales[x] for x in CATEGORIAS_ACERO] +
+        [sum(totales.values())]
+    )
+
+hormigon_material = []
+if detalle_hormigon:
+    for material, datos in sorted(resultado_hormigon.items()):
+        hormigon_material.append([
+            material, datos["cantidad"], datos["volumen"]
+        ])
+    hormigon_material.append([
+        "TOTAL", len(detalle_hormigon), total_hormigon_m3
+    ])
+
+hormigon_categoria_datos = {}
+for elemento in detalle_hormigon:
+    categoria = elemento["categoria"]
+    hormigon_categoria_datos.setdefault(
+        categoria, {"cantidad": 0, "volumen": 0.0})
+    hormigon_categoria_datos[categoria]["cantidad"] += 1
+    hormigon_categoria_datos[categoria]["volumen"] += elemento["volumen"]
+
+hormigon_categoria = []
+if detalle_hormigon:
+    for categoria, datos in sorted(hormigon_categoria_datos.items()):
+        peso = datos["volumen"] * DENSIDAD_HORMIGON
+        hormigon_categoria.append([
+            categoria, datos["cantidad"], datos["volumen"],
+            peso, peso / 1000.0,
+            datos["volumen"] / total_hormigon_m3
+            if total_hormigon_m3 else 0.0
+        ])
+    hormigon_categoria.append([
+        "TOTAL", len(detalle_hormigon), total_hormigon_m3,
+        total_hormigon_kg, total_hormigon_kg / 1000.0, 1.0
+    ])
+
+barandas = []
+for tipo in sorted(set(x["tipo"] for x in detalle_barandas)):
+    items = [x for x in detalle_barandas if x["tipo"] == tipo]
+    largo = sum(x["largo"] for x in items)
+    peso = sum(x["peso"] for x in items)
+    barandas.append([tipo, len(items), largo, peso / largo if largo else 0.0, peso, peso / 1000.0])
+if barandas:
+    barandas.append(["TOTAL", len(detalle_barandas), sum(x["largo"] for x in detalle_barandas), "", sum(x["peso"] for x in detalle_barandas), sum(x["peso"] for x in detalle_barandas) / 1000.0])
+
+pernos_anclaje = [[tipo, cantidad] for tipo, cantidad in sorted(pernos_por_tipo.items())]
+if pernos_anclaje:
+    pernos_anclaje.append(["TOTAL", sum(pernos_por_tipo.values())])
+
+grout = [[id_texto(x["elemento"]), x["tipo"], x["perimetro"], x["altura"], x["proyeccion"], x["area_seccion"], x["volumen"]] for x in grout_columnas]
+if grout:
+    grout.append(["TOTAL", len(grout_columnas), "", 0.025, 0.025, "", sum(x["volumen"] for x in grout_columnas)])
+
+sin_peso_hoja = [[id_texto(x["elemento"]), x["categoria"], x["nombre"], x["motivo"]] for x in sin_parametros_peso]
+sin_longitud_hoja = [[id_texto(x["elemento"]), x["categoria"], x["nombre"], x["motivo"]] for x in sin_longitud]
+
+acero_nw_declarado = []
+orden_nw_declarado = ORDEN_CLASES + [
+    x for x in resultado_acero_nw_declarado if x not in ORDEN_CLASES]
+for clase in orden_nw_declarado:
+    if clase in resultado_acero_nw_declarado:
+        datos = resultado_acero_nw_declarado[clase]
+        acero_nw_declarado.append([
+            clase, datos["cantidad"], datos["peso"], datos["peso"] / 1000.0
+        ])
+if acero_nw_declarado:
+    total_nw_declarado = sum(
+        x["peso"] for x in resultado_acero_nw_declarado.values())
+    total_cantidad_nw_declarado = sum(
+        x["cantidad"] for x in resultado_acero_nw_declarado.values())
+    acero_nw_declarado.append([
+        "TOTAL", total_cantidad_nw_declarado,
+        total_nw_declarado, total_nw_declarado / 1000.0
+    ])
+
+comparacion_nw = []
+orden_comparacion = ORDEN_CLASES + [x for x in comparacion_nw_datos if x not in ORDEN_CLASES]
+for clase in orden_comparacion:
+    if clase in comparacion_nw_datos:
+        datos = comparacion_nw_datos[clase]
+        diferencia = datos["peso_declarado"] - datos["peso_ml"]
+        porcentaje = diferencia / datos["peso_ml"] if datos["peso_ml"] else 0.0
+        comparacion_nw.append([clase, datos["cantidad"], datos["peso_ml"], datos["peso_declarado"], diferencia, porcentaje])
+if comparacion_nw:
+    total_cantidad = len(detalle_comparacion_peso)
+    total_ml = sum(x["peso_ml"] for x in detalle_comparacion_peso)
+    total_declarado = sum(x["peso_declarado"] for x in detalle_comparacion_peso)
+    total_diferencia = total_declarado - total_ml
+    comparacion_nw.append(["TOTAL", total_cantidad, total_ml, total_declarado, total_diferencia, total_diferencia / total_ml if total_ml else 0.0])
+
+detalle_comparacion_hoja = [[
+    id_texto(x["elemento"]), x["categoria"], x["nombre"], x["clase"],
+    x["kg_ml"], x["largo"], x["peso_ml"], x["fuente_ml"],
+    x["peso_declarado"], x["fuente_declarado"], x["diferencia"], x["diferencia_pct"]
+] for x in detalle_comparacion_peso]
+
+# El XLSX utiliza detalle_comparacion_hoja completo.
+# El reporte pyRevit muestra solo elementos cuya diferencia supera la tolerancia.
+detalle_comparacion_diferencias = []
+for fila in detalle_comparacion_hoja:
+    diferencia_kg = fila[10]
+    diferencia_pct = fila[11]
+    if (abs(diferencia_kg) > TOLERANCIA_DIFERENCIA_KG or
+            abs(diferencia_pct) > TOLERANCIA_DIFERENCIA_PCT):
+        detalle_comparacion_diferencias.append(fila)
+
+control = [
+    ["Elementos revisados", len(elementos)],
+    ["Acero detectado", len(detalle_acero)],
+    ["Hormigon detectado", len(detalle_hormigon)],
+    ["Sin volumen valido", len(sin_volumen)],
+    ["Sin material detectable", len(sin_material)],
+    ["Material no clasificado", len(no_clasificados)],
+    ["Sin parametros de peso", len(sin_parametros_peso)],
+    ["Sin longitud valida", len(sin_longitud)],
+    ["Barandas detectadas", len(detalle_barandas)],
+    ["Pernos de anclaje detectados", sum(pernos_por_tipo.values())],
+    ["Columnas con grout", len(grout_columnas)],
+    ["Elementos comparables por ambos metodos", len(detalle_comparacion_peso)],
+    ["Elementos con diferencia de peso", len(detalle_comparacion_diferencias)],
+    ["Elementos NW con PESO o Kg_Total", sum(
+        x["cantidad"] for x in resultado_acero_nw_declarado.values())]
+]
+
+detalle_acero_hoja = [[
+    id_texto(x["elemento"]), x["categoria"],
+    x["categoria_resumen"], x["nombre"], x["material"],
+    x["clase"], x["volumen"], x["largo"],
+    x["peso_lineal"], x["peso"], x["fuente_peso"]
+] for x in detalle_acero]
+
+detalle_hormigon_hoja = [[
+    id_texto(x["elemento"]), x["categoria"],
+    x["nombre"], x["material"], x["volumen"]
+] for x in detalle_hormigon]
+
+hojas = [
+    ("Resumen General", ["Concepto", "Cantidad", "Unidad"], resumen_general),
+    ("Hormigon Material", ["Material", "Cantidad", "Volumen m3"], hormigon_material),
+    ("Hormigon Categoria", ["Categoria", "Cantidad", "Volumen m3", "Peso kg", "Peso ton", "% Volumen"], hormigon_categoria),
+    ("Control", ["Concepto", "Cantidad"], control)
+]
+if detalle_acero:
+    hojas.extend([
+        ("Acero Categoria", ["Categoria", "Cantidad", "Peso kg", "Peso ton", "% Peso"], acero_categoria),
+        ("Acero NW", ["Clase NW", "Cantidad", "Peso kg", "Peso ton"], acero_nw),
+        ("Matriz NW Categoria", ["Clase NW"] + CATEGORIAS_ACERO + ["Total"], matriz_nw),
+        ("Detalle Acero", ["ElementId", "Categoria Revit", "Categoria Resumen", "Nombre", "Material", "Clase NW", "Volumen m3", "Largo m", "Peso lineal kg/m", "Peso kg", "Fuente peso"], detalle_acero_hoja)
+    ])
+if detalle_hormigon:
+    hojas.append((
+        "Detalle Hormigon",
+        ["ElementId", "Categoria", "Nombre", "Material", "Volumen m3"],
+        detalle_hormigon_hoja
+    ))
+
+if barandas:
+    hojas.append(("Barandas", ["Tipo", "Cantidad", "Longitud m", "Kg_ml", "Peso kg", "Peso ton"], barandas))
+if grout:
+    hojas.append(("Grout Fundacion", ["ElementId", "Tipo columna", "Perimetro m", "Altura m", "Proyeccion 45 m", "Area seccion m2", "Volumen m3"], grout))
+if pernos_anclaje:
+    hojas.append(("Pernos Anclaje", ["Tipo de perno", "Cantidad"], pernos_anclaje))
+if sin_peso_hoja:
+    hojas.append(("Sin Peso", ["ElementId", "Categoria", "Nombre", "Observacion"], sin_peso_hoja))
+if sin_longitud_hoja:
+    hojas.append(("Sin Longitud", ["ElementId", "Categoria", "Nombre", "Observacion"], sin_longitud_hoja))
+if acero_nw_declarado:
+    hojas.append((
+        "Acero NW Peso Declarado",
+        ["Clase NW", "N Elementos", "Peso kg", "Peso ton"],
+        acero_nw_declarado))
+if comparacion_nw:
+    hojas.append(("Comparacion NW", ["Nominal Weight", "Elementos comparables", "Peso Kg_ml kg", "Peso PESO-Kg_Total kg", "Diferencia kg", "Diferencia %"], comparacion_nw))
+if detalle_comparacion_hoja:
+    hojas.append(("Detalle Comparacion", ["ElementId", "Categoria", "Nombre", "Nominal Weight", "Kg_ml", "Longitud m", "Peso Kg_ml kg", "Fuente lineal", "Peso declarado kg", "Parametro declarado", "Diferencia kg", "Diferencia %"], detalle_comparacion_hoja))
+
+# ================================================================
+# REPORTE PYREVIT
+# ================================================================
+
+output = script.get_output()
+output.close_others()
+output.set_title("Cubicacion Estructural - {}".format(doc.Title))
+output.print_md("# Reporte de Cubicacion Estructural")
+output.print_md("**Proyecto:** {}".format(doc.Title))
+output.print_md("**Vista activa:** {}".format(active_view.Name))
+
+
+def imprimir(titulo, subtitulo, columnas, filas, porcentajes=None):
+    output.print_md("---")
+    output.print_md("## {}".format(titulo))
+    if not filas:
+        output.print_md("**Sin datos para esta seccion.**")
+        return
+    tabla = []
+    for fila in filas:
+        nueva = []
+        for indice, valor in enumerate(fila):
+            if (porcentajes and indice in porcentajes and
+                    isinstance(valor, float)):
+                nueva.append("{:.1f}%".format(valor * 100.0))
+            elif isinstance(valor, float):
+                nueva.append("{:,.2f}".format(valor))
+            else:
+                nueva.append(str(valor))
+        tabla.append(nueva)
+    output.print_table(
+        table_data=tabla, title=subtitulo, columns=columnas)
+
+
+imprimir("Resumen General", "Resumen General de Cubicacion",
+         ["Concepto", "Cantidad", "Unidad"], resumen_general)
+if detalle_acero:
+    imprimir("Acero por Categoria", "Resumen de Acero por Categoria",
+             ["Categoria", "Cantidad", "Peso kg", "Peso ton", "% Peso"],
+             acero_categoria, [4])
+    imprimir("Matriz NW por Categoria",
+             "Cantidad de Elementos por Clase NW y Categoria",
+             ["Clase NW"] + CATEGORIAS_ACERO + ["Total"], matriz_nw)
+    imprimir("Acero por Clasificacion NW",
+             "Clasificacion por Nominal Weight",
+             ["Clase NW", "N Elementos", "Peso kg", "Peso ton"],
+             acero_nw)
+    output.print_md("**Subtotal acero:** {:,.1f} kg ({:,.2f} ton)".format(
+        total_acero, total_acero / 1000.0))
+    output.print_md("**Factor conexiones ({:.0f}%):** + {:,.1f} kg".format(
+        FACTOR_CONEXIONES * 100.0, conexiones))
+    output.print_md("### Total acero con conexiones: {:,.1f} kg ({:,.2f} ton)".format(
+        acero_total, acero_total / 1000.0))
+else:
+    output.print_md("---")
+    output.print_md("## Acero Estructural")
+    output.print_md("**No se encontraron elementos de acero en la vista activa. Las tablas se conservan y apareceran cuando existan elementos de acero.**")
+
+imprimir("Hormigon por Material", "Desglose por Material de Hormigon",
+         ["Material", "Cantidad", "Volumen m3"], hormigon_material)
+imprimir("Hormigon por Categoria", "Resumen de Hormigon por Categoria",
+         ["Categoria", "Cantidad", "Volumen m3", "Peso kg", "Peso ton", "% Volumen"],
+         hormigon_categoria, [5])
+output.print_md("**Volumen total de hormigon:** {:,.2f} m3".format(
+    total_hormigon_m3))
+output.print_md("**Peso total de hormigon:** {:,.1f} kg ({:,.2f} ton)".format(
+    total_hormigon_kg, total_hormigon_kg / 1000.0))
+imprimir("Barandas de Acero", "Cubicacion Unica de Barandas", ["Tipo", "Cantidad", "Longitud m", "Kg_ml", "Peso kg", "Peso ton"], barandas)
+if grout:
+    output.print_md("**Criterio grout:** perfil triangular continuo de 25 mm, con proyeccion horizontal de 25 mm por borde a 45 grados. Perimetro aproximado mediante BoundingBox.")
+imprimir("Grout de Columnas de Fundacion", "Cubicacion de grout 25 mm", ["ElementId", "Tipo columna", "Perimetro m", "Altura m", "Proyeccion 45 m", "Area seccion m2", "Volumen m3"], grout)
+imprimir("Pernos de Anclaje", "Cantidad por Tipo de Perno", ["Tipo de perno", "Cantidad"], pernos_anclaje)
+imprimir(
+    "Acero por Clasificacion NW - PESO o Kg_Total",
+    "Clasificacion por Nominal Weight con Peso Declarado",
+    ["Clase NW", "N Elementos", "Peso kg", "Peso ton"],
+    acero_nw_declarado)
+imprimir("Comparacion por Nominal Weight", "Peso por Kg_ml versus PESO o Kg_Total", ["Nominal Weight", "Elementos comparables", "Peso Kg_ml kg", "Peso PESO-Kg_Total kg", "Diferencia kg", "Diferencia %"], comparacion_nw, [5])
+imprimir("Diferencias de Peso por Elemento", "Solo elementos con diferencias entre ambos metodos", ["ElementId", "Categoria", "Nombre", "Nominal Weight", "Kg_ml", "Longitud m", "Peso Kg_ml kg", "Fuente lineal", "Peso declarado kg", "Parametro declarado", "Diferencia kg", "Diferencia %"], detalle_comparacion_diferencias, [11])
+imprimir("Elementos sin Parametros de Peso", "Elementos sin Kg_ml utilizable, PESO o Kg_Total", ["ElementId", "Categoria", "Nombre", "Observacion"], sin_peso_hoja)
+imprimir("Elementos sin Longitud Valida", "Elementos con Kg_ml pero sin Length, System Length o LARGO", ["ElementId", "Categoria", "Nombre", "Observacion"], sin_longitud_hoja)
+imprimir("Control de Revision", "Resumen de Control",
+         ["Concepto", "Cantidad"], control)
+
+output.print_md("---")
+output.print_md("## Exportacion XLSX")
+try:
+    dialogo = SaveFileDialog()
+    dialogo.Title = "Exportar cubicacion a XLSX"
+    dialogo.Filter = "Libro de Excel (*.xlsx)|*.xlsx"
+    dialogo.FileName = "Cubicacion_Estructural_{}.xlsx".format(doc.Title)
+    if dialogo.ShowDialog() == DialogResult.OK:
+        ruta = dialogo.FileName
+        if not ruta.lower().endswith('.xlsx'):
+            ruta += '.xlsx'
+        exportar_xlsx(ruta, hojas)
+        output.print_md("**XLSX exportado correctamente:** {}".format(ruta))
+    else:
+        output.print_md("Exportacion cancelada por el usuario.")
+except Exception as error:
+    output.print_md("**Error exportando XLSX:** {}".format(error))
+
+output.print_md("---")
+output.print_md("*Generado con pyRevit - SebaSaezS*")
