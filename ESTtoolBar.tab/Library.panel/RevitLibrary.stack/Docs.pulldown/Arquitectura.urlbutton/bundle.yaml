@@ -1,0 +1,15 @@
+# bundle title
+title: 
+  en_us: "BIM Architecture Protocol"
+  es_es: "Protocolo BIM Arquitectura"
+
+# url
+hyperlink: "https://arcadiso365.sharepoint.com/:b:/r/sites/CL_Especialidad_OOCCyE/02%20Comun/Biblioteca%20BIM%20Arquitectura/03%20Protocolo%20BIM/PDM-GOP-013%20Protoclo%20BIM%20Arquitectura%20(Revit).pdf?csf=1&web=1&e=jXsUPE"
+
+# bundle tooltip
+tooltip: 
+  en_us: "Protocol for the use of BIM Revit tools and their application in the Architecture discipline"
+  es_es: "Protocolo para uso de herramientas BIM Revit, y su uso en la disciplina Arquitectura"
+
+# bundle author
+author: Felipe Bonnemaison

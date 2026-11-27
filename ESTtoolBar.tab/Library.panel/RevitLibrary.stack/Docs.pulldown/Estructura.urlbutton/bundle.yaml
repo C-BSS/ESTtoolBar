@@ -1,0 +1,15 @@
+# bundle title
+title: 
+  en_us: "BIM Structures Protocol"
+  es_es: "Protocolo BIM Estructuras"
+
+# url
+hyperlink: "https://arcadiso365.sharepoint.com/:b:/r/sites/CL_Especialidad_OOCCyE/02%20Comun/Biblioteca%20BIM%20Estructuras/04%20Protocolo%20BIM/PDM-GOP-012%20Protoclo%20BIM%20Estructuras%20(Revit).pdf?csf=1&web=1&e=qzKLz3"
+
+# bundle tooltip
+tooltip: 
+  en_us: "Protocol for the use of BIM Revit tools and their application in the Structural discipline"
+  es_es: "Protocolo para uso de herramientas BIM Revit, y su uso en la disciplina Estructural"
+
+# bundle author
+author: Felipe Bonnemaison

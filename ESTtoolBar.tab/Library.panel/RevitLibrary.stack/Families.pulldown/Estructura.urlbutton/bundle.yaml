@@ -1,0 +1,15 @@
+# bundle title 
+title: 
+  en_us: "Revit Structure Families"
+  es_es: "Familias Revit Estructuras"
+
+# url
+hyperlink: "https://arcadiso365.sharepoint.com/:f:/r/sites/CL_Especialidad_OOCCyE/02%20Comun/Biblioteca%20BIM%20Estructuras/01%20Biblioteca%20Revit/02%20Family%20(Familias)?csf=1&web=1&e=7slb8p"
+
+# bundle tooltip
+tooltip: 
+  en_us: "Compilation of various Families from the Structural discipline for Revit"
+  es_es: "Recopilación de distintas Familias de la disciplina estructural para Revit"
+
+# bundle author
+author: Sebastián Saez
